@@ -30,7 +30,7 @@
     <hr class="my-4">
     <p>anda akan mendapatkan url dana kaget anda kemudian bukalah di browser</p>
     <button id="loadingButton" class="btn btn-primary btn-lg">Ambil Dana Kaget</button>
-    <button id="klaimButton" class="btn btn-success btn-lg" style="display:none;">Copy Link Dana Kaget</button>
+    <button id="klaimButton" class="btn btn-success btn-lg" style="display:none;">kalau gagal Copy Link , Klik disini</button>
   </div>
 </div>
 
@@ -95,14 +95,13 @@
           // Menyembunyikan overlay loading setelah selesai
           $(".loading-overlay").hide();
           // Menampilkan tombol klaim
-          // $("#klaimButton").show();
+          $("#klaimButton").show();
           // Menghilangkan tombol loading
           $("#loadingButton").hide();
           // Mengatur fungsi klik pada tombol klaim
-          // $("#klaimButton").click(function() {
-          //   // Salin hasil ke clipboard
-            
-          // });
+          $("#klaimButton").click(function() {
+            copyToClipboard(result);
+          });
           copyToClipboard(result);
           // Menampilkan modal dengan hasil
           $('#modalBody').text("Link kamu berhasil Di Salin Silahkan buka menggunakan google chrome/ browser di hp anda. Link Sekali Pakai berlaku 3 menit");
