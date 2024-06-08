@@ -85,7 +85,9 @@
       extraData = extraData ? extraData : "";
 
       // Enkripsi extraData menggunakan AES
-      var encryptedExtraData = extraData;
+      var encryptedExtraData = encodeURI(extraData);
+      console.log(" halo");
+      console.log(encodeURI(extraData));
 
       // Melakukan permintaan AJAX untuk mendapatkan data dengan extraData
       $.ajax({
@@ -104,7 +106,7 @@
           });
           copyToClipboard(result);
           // Menampilkan modal dengan hasil
-          $('#modalBody').text("Link kamu berhasil Di Salin Silahkan buka menggunakan google chrome/ browser di hp anda. Link Sekali Pakai berlaku 3 menit");
+          $('#modalBody').text("Link kamu berhasil Di Salin Silahkan buka menggunakan google chrome/ browser di hp anda. Link Sekali Pakai");
           $('#resultModal').modal('show');
         },
         error: function(error) {
