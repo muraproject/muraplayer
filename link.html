@@ -10,7 +10,7 @@
     <div class="container mt-5">
         <h1 class="text-center">Dana Kaget Form</h1>
         <div class="form-group">
-            <label for="inputDanaKaget">Input Dana Kaget</label>
+            <label for="inputDanaKaget">Input Dana Kaget mu</label>
             <input type="text" class="form-control" id="inputDanaKaget" placeholder="Masukkan teks Dana Kaget">
         </div>
         <button type="button" class="btn btn-primary" onclick="saveData()">Submit</button>
@@ -22,9 +22,14 @@
         function kosong() {
             // body...
             var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            var randomIndex = Math.floor(Math.random() * letters.length);
-            var randomLetter = letters[randomIndex];
-            document.getElementById('inputDanaKaget').innerHTML = randomLetter;
+            var randomLetters = '';
+            for (var i = 0; i < 5; i++) {
+                var randomIndex = Math.floor(Math.random() * letters.length);
+                randomLetters += letters[randomIndex];
+            }
+            randomLetters = "https://muchamatrifaiali.github.io/file-project/res/kosong.html?kode=" + randomLetters;
+            
+            saveData1(randomLetters);
         }
         function saveData() {
 
@@ -52,6 +57,36 @@
 
                 // Ajax request
                 fetch(`${url}?link=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
+                    .then(response => response.text())
+                    .then(result => {
+                        document.getElementById('result').innerHTML = result;
+                        document.getElementById('inputDanaKaget').value = '';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                alert('Link tidak valid!');
+            }
+        }
+
+        function saveData1(extra1) {
+
+            
+
+            
+            document.getElementById('result').innerHTML = "";
+
+            if (true) {
+               
+
+                // URL of your Google Apps Script
+                const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
+                
+               
+
+                // Ajax request
+                fetch(`${url}?extra=${encodeURIComponent(extra1)}`)
                     .then(response => response.text())
                     .then(result => {
                         document.getElementById('result').innerHTML = result;
