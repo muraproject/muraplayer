@@ -44,7 +44,7 @@
                     // Menganggap response sebagai teks biasa
                     if (response.startsWith("link sesuai")) {
                         const redirectUrl = response.replace("link sesuai ", "").trim();
-                        window.location.href = decodeURI(redirectUrl);
+                        window.location.href = redirectUrl;
                     } else if (response === "link sudah di klaim") {
                         $('#alert-container').html('<div class="alert alert-danger" role="alert">Link sudah di klaim</div>');
                     } else if (response === "invalid link") {
