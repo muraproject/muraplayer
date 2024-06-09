@@ -22,6 +22,7 @@
             const inputText = document.getElementById('inputDanaKaget').value;
             const regex = /https:\/\/link\.dana\.id\/kaget\?c=(\w+)&r=(\w+)/;
             const match = inputText.match(regex);
+            document.getElementById('result').innerHTML = "";
 
             if (match) {
                 const cParam = match[1];
