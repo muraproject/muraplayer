@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajax Dana Kaget Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Dana Kaget Form</h1>
+        <div class="form-group">
+            <label for="inputDanaKaget">Input Dana Kaget</label>
+            <input type="text" class="form-control" id="inputDanaKaget" placeholder="Masukkan teks Dana Kaget">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveData()">Submit</button>
+        <div id="result" class="mt-3"></div>
+    </div>
+
+    <script>
+        function saveData() {
+            const inputText = document.getElementById('inputDanaKaget').value;
+            const regex = /https:\/\/link\.dana\.id\/kaget\?c=(\w+)&r=(\w+)/;
+            const match = inputText.match(regex);
+
+            if (match) {
+                const cParam = match[1];
+                const rParam = match[2];
+                const link = match[0];
+                const extraParam = `${cParam}%26r%3D${rParam}`;
+
+                // URL of your Google Apps Script
+                const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
+                
+                // Data to be sent
+                const data = {
+                    link: link,
+                    extra: extraParam
+                };
+
+                // Ajax request
+                fetch(`${url}?link=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
+                    .then(response => response.text())
+                    .then(result => {
+                        document.getElementById('result').innerHTML = result;
+                        document.getElementById('inputDanaKaget').value = '';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                alert('Link tidak valid!');
+            }
+        }
+    </script>
+</body>
+</html>
