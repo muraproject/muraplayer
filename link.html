@@ -59,7 +59,7 @@
                 fetch(`${url}?link=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
                     .then(response => response.text())
                     .then(result => {
-                        document.getElementById('result').innerHTML = result;
+                        document.getElementById('result').innerHTML =  document.getElementById('result').value= "</br>"+ result;
                         document.getElementById('inputDanaKaget').value = '';
                     })
                     .catch(error => {
