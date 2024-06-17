@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajax Dana Kaget Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #linkDisplay {
+            margin-top: 20px;
+            font-size: 18px;
+            color: blue;
+        }
+        .response {
+            margin-top: 5px;
+            font-size: 16px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Dana Kaget Form</h1>
+        <div class="form-group">
+            <label for="inputDanaKaget">Input Dana Kaget</label>
+            <input type="text" class="form-control" id="inputDanaKaget" placeholder="Masukkan teks Dana Kaget">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="processLinks()">Submit</button>
+        <div id="linkDisplay">Loading links...</div>
+    </div>
+
+    <script>
+        function processLinks() {
+            const inputText = document.getElementById('inputDanaKaget').value;
+            const regex = /https:\/\/link\.dana\.id\/kaget\?c=\w+&r=\w+/g;
+            const links = inputText.match(regex) || [];
+            if (links.length === 0) {
+                alert('Tidak ada link valid yang ditemukan!');
+                return;
+            }
+
+            const displayLinks = [...links];
+
+            function insertKosongLinks(arr, num) {
+                let inserted = 0;
+                let attempts = 0; // Track attempts to prevent infinite loops
+
+                while (inserted < num && attempts < arr.length * 10) {
+                    attempts++;
+                    let pos = Math.floor(Math.random() * (arr.length - 1)) + 1;
+                    if (arr[pos] !== 'kosong.html' && 
+                        (pos === 0 || arr[pos - 1] !== 'kosong.html') && 
+                        (pos === arr.length - 1 || arr[pos + 1] !== 'kosong.html')) {
+                        arr.splice(pos, 0, 'kosong.html');
+                        inserted++;
+                    }
+                }
+
+                if (attempts >= arr.length * 10) {
+                    console.error('Gagal menyisipkan semua link kosong.');
+                }
+            }
+
+            insertKosongLinks(displayLinks, 4);
+
+            let currentIndex = 0;
+            document.getElementById('linkDisplay').innerHTML = '';
+
+            function displayNextLink() {
+                if (currentIndex < displayLinks.length) {
+                    const currentLink = displayLinks[currentIndex];
+                    const linkElement = document.createElement('div');
+                    linkElement.innerHTML = currentLink === 'kosong.html' ?
+                        `<a href="kosong.html" target="_blank">kosong.html</a>` :
+                        `<a href="${currentLink}" target="_blank">${currentLink}</a>`;
+                    document.getElementById('linkDisplay').appendChild(linkElement);
+
+                    sendLinkToServer(currentLink, linkElement);
+                    currentIndex++;
+                } else {
+                    clearInterval(linkInterval);
+                }
+            }
+
+            const linkInterval = setInterval(displayNextLink, 1000);
+        }
+
+        function sendLinkToServer(link, linkElement) {
+            const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
+            const responseElement = document.createElement('div');
+            responseElement.className = 'response';
+            linkElement.appendChild(responseElement);
+
+            if (link === 'kosong.html') {
+                const extra = `https://muchamatrifaiali.github.io/file-project/res/kosong.html?kode=${generateRandomString(5)}`;
+                fetch(`${url}?extra=${encodeURIComponent(extra)}`)
+                    .then(response => response.text())
+                    .then(result => {
+                        responseElement.textContent = result;
+                    })
+                    .catch(error => {
+                        responseElement.textContent = `Error: ${error}`;
+                    });
+            } else {
+                const cParam = link.match(/c=(\w+)&r=/)[1];
+                const rParam = link.match(/&r=(\w+)/)[1];
+                const extraParam = `${cParam}%26r%3D${rParam}`;
+
+                fetch(`${url}?link=${encodeURIComponent(link)}&extra=${encodeURIComponent(extraParam)}`)
+                    .then(response => response.text())
+                    .then(result => {
+                        responseElement.textContent = result;
+                    })
+                    .catch(error => {
+                        responseElement.textContent = `Error: ${error}`;
+                    });
+            }
+        }
+
+        function generateRandomString(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                result += characters[randomIndex];
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
