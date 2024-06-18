@@ -23,7 +23,7 @@
           </div>
           <small class="form-text text-muted">Masukkan nomor HP Anda (10-13 digit).</small>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button id="buttonku" type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
   </div>
@@ -53,6 +53,7 @@
       $('#phone-form').on('submit', function(e) {
         e.preventDefault();
         var phoneNumber = $('#phoneNumber').val();
+        $('#buttonku').addClass('d-none');
 
         if (!/^\d{10,13}$/.test(phoneNumber)) {
           $('#modalMessage').text('Nomor HP tidak valid. Harus 10-13 digit.');
