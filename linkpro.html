@@ -26,7 +26,7 @@
             <input type="text" class="form-control" id="inputDanaKaget" placeholder="Masukkan teks Dana Kaget">
         </div>
         <button type="button" class="btn btn-primary" onclick="processLinks()">Submit</button>
-        <div id="linkDisplay">Loading links...</div>
+        <div id="linkDisplay">Loading linku</div>
     </div>
 
     <script>
@@ -82,7 +82,7 @@
                 }
             }
 
-            const linkInterval = setInterval(displayNextLink, 1000);
+            const linkInterval = setInterval(displayNextLink, 3000);
         }
 
         function sendLinkToServer(link, linkElement) {
