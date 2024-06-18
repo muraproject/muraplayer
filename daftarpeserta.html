@@ -37,10 +37,17 @@
             tableBody.empty(); // Kosongkan tabel sebelum menambahkan data baru
 
             data.forEach(function(row, index) {
+              var phoneNumber = row[0];
+              var timestamp = new Date(row[1]);
+
+              // Konversi waktu ke GMT+7
+              var gmt7Time = new Date(timestamp.getTime() + (7 * 60 * 60 * 1000));
+              var formattedTime = gmt7Time.toISOString().slice(0, 19).replace('T', ' ');
+
               var newRow = '<tr>' +
                            '<td>' + (index + 1) + '</td>' +
-                           '<td>' + row[0] + '</td>' +
-                           '<td>' + row[1] + '</td>' +
+                           '<td>' + phoneNumber + '</td>' +
+                           '<td>' + formattedTime + '</td>' +
                            '</tr>';
               tableBody.append(newRow);
             });
