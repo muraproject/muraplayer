@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing Page</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    /* Custom styling for loading animation */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.5);
+      z-index: 9999;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="jumbotron">
+    <h1 class="display-4">Selamat Datang!</h1>
+    <p class="lead">klaim dana kaget anda sekarang</p>
+    <hr class="my-4">
+    <p>anda akan mendapatkan url dana kaget anda kemudian bukalah di browser</p>
+    <button id="loadingButton" class="btn btn-primary btn-lg">Ambil Dana Kaget</button>
+    <button id="klaimButton" class="btn btn-success btn-lg" style="display:none;">kalau gagal Copy Link , Klik disini</button>
+  </div>
+  <div class="alert alert-info" role="alert">
+  Jika Bingung Atau Ingin Gabung Grup Whastapp Silahkan Hubungi admin WA : 0859183896279
+</div>
+</div>
+
+<!-- Loading Overlay with Progress Bar -->
+<div class="loading-overlay">
+  <div class="progress">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Link Dana Kaget</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Pesan akan ditampilkan di sini -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- CryptoJS library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    // Menangani klik tombol
+    $("#loadingButton").click(function() {
+      // Menonaktifkan tombol yang pertama kali ditekan
+      $(this).prop('disabled', true);
+      // Menampilkan overlay loading
+      $(".loading-overlay").show();
+
+      // Mendapatkan nilai dari parameter URL 'extra'
+      var urlParams = new URLSearchParams(window.location.search);
+      var extraData = urlParams.get('extra');
+
+      // Jika 'extraData' tidak ada, gunakan string kosong
+      extraData = extraData ? extraData : "";
+
+      // Enkripsi extraData menggunakan AES
+      var encryptedExtraData = extraData;
+      console.log(" halo");
+      console.log(encodeURI(extraData));
+      $("#loadingButton").hide();
+      document.title= "https://link.dana.id/kaget?c="+extraData;
+
+      // Melakukan permintaan AJAX untuk mendapatkan data dengan extraData
+      // $.ajax({
+      //   url: "https://script.google.com/macros/s/AKfycbw8UMlG3Km3vHqMu-lrU6L6Qm8jPvyY6uznjvyLWOQnogMyLBzdPtuL9gXCla13Lkue/exec?action=generate&extraData=" + encryptedExtraData,
+      //   method: "GET",
+      //   success: function(result) {
+      //     // Menyembunyikan overlay loading setelah selesai
+      //     $(".loading-overlay").hide();
+      //     // Menampilkan tombol klaim
+      //     $("#klaimButton").show();
+      //     // Menghilangkan tombol loading
+      //     $("#loadingButton").hide();
+      //     // Mengatur fungsi klik pada tombol klaim
+      //     $("#klaimButton").click(function() {
+      //       copyToClipboard(result);
+      //     });
+      //     copyToClipboard(result);
+      //     // Menampilkan modal dengan hasil
+      //     $('#modalBody').text("Link kamu berhasil Di Salin Silahkan buka menggunakan google chrome/ browser di hp anda. Link Sekali Pakai");
+      //     $('#resultModal').modal('show');
+      //   },
+      //   error: function(error) {
+      //     // Menyembunyikan overlay loading dalam kasus kesalahan
+      //     $(".loading-overlay").hide();
+      //     // Menampilkan pesan kesalahan dalam alert
+      //     $('#modalBody').text("Terjadi kesalahan: " + error.statusText);
+      //     $('#resultModal').modal('show');
+      //     // Mengaktifkan kembali tombol yang pertama kali ditekan dalam kasus kesalahan
+      //     $("#loadingButton").prop('disabled', false);
+      //   }
+      // });
+    });
+  });
+
+  // Fungsi untuk enkripsi menggunakan AES
+  function encryptAES(data) {
+    var passphrase = "SecretPassphrase"; // Ganti dengan passphrase Anda sendiri
+    var encrypted = CryptoJS.AES.encrypt(data, passphrase).toString();
+    return encrypted;
+  }
+
+  // Fungsi untuk menyalin teks ke clipboard
+  function copyToClipboard(text) {
+    var textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+</script>
+</body>
+</html>
