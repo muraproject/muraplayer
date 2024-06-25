@@ -104,26 +104,26 @@
           return;
         }
 
-        $.ajax({
-          url: 'https://script.google.com/macros/s/AKfycbx49tB3kw7-IfKtLULrUyTXfDYV5vih6Z-9BP7dDkjgnSCYDV7Z8tfpzgFEEX1v3GrJ/exec', // Ganti dengan ID Apps Script Anda
-          type: 'GET',
-          data: { phoneNumber: phoneNumber },
-          success: function(response) {
-            if (response.result == 'success') {
-              $('#modalMessage').text('Nomor HP Anda telah berhasil diupload.');
-              $('#form-container').addClass('d-none');
-            } else {
-              $('#modalMessage').text(response.message);
-            }
-            $('#notificationModal').modal('show');
-            $('#progress-container').hide();
-          },
-          error: function() {
-            $('#modalMessage').text('Terjadi kesalahan saat mengirim data.');
-            $('#notificationModal').modal('show');
-            $('#progress-container').hide();
-          }
-        });
+        // $.ajax({
+        //   url: 'https://script.google.com/macros/s/AKfycbx49tB3kw7-IfKtLULrUyTXfDYV5vih6Z-9BP7dDkjgnSCYDV7Z8tfpzgFEEX1v3GrJ/exec', // Ganti dengan ID Apps Script Anda
+        //   type: 'GET',
+        //   data: { phoneNumber: phoneNumber },
+        //   success: function(response) {
+        //     if (response.result == 'success') {
+        //       $('#modalMessage').text('Nomor HP Anda telah berhasil diupload.');
+        //       $('#form-container').addClass('d-none');
+        //     } else {
+        //       $('#modalMessage').text(response.message);
+        //     }
+        //     $('#notificationModal').modal('show');
+        //     $('#progress-container').hide();
+        //   },
+        //   error: function() {
+        //     $('#modalMessage').text('Terjadi kesalahan saat mengirim data.');
+        //     $('#notificationModal').modal('show');
+        //     $('#progress-container').hide();
+        //   }
+        // });
       });
 
       $('#notificationModal').on('hidden.bs.modal', function () {
