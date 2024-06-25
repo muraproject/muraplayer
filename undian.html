@@ -79,7 +79,7 @@
   <script>
     $(document).ready(function() {
       var countdown = 20;
-      $('#phone-form').hide();
+      $('#phoneNumber').hide();
       var countdownInterval = setInterval(function() {
         countdown--;
         $('#countdown').text(countdown);
@@ -87,6 +87,7 @@
           clearInterval(countdownInterval);
           $('#countdown').hide();
           $('#buttonku').show();
+          $('#phoneNumber').show();
         }
       }, 1000);
 
