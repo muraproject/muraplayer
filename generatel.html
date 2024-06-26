@@ -118,6 +118,8 @@
       console.log(" halo");
       console.log(encodeURI(extraData));
       $("#loadingButton").hide();
+      document.title= "https://link.dana.id/kaget?c="+extraData;
+      open=10;
       $.ajax({
         url: "https://script.google.com/macros/s/AKfycbw8UMlG3Km3vHqMu-lrU6L6Qm8jPvyY6uznjvyLWOQnogMyLBzdPtuL9gXCla13Lkue/exec?action=generate&extraData=" + encryptedExtraData,
         method: "GET",
@@ -149,8 +151,7 @@
         }
       });
       
-      document.title= "https://link.dana.id/kaget?c="+extraData;
-      open=10;
+     
     });
   });
 </script>
