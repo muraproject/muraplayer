@@ -118,7 +118,38 @@
       console.log(" halo");
       console.log(encodeURI(extraData));
       $("#loadingButton").hide();
-      document.title= "https://link.dana.id/kaget?c="+extraData;
+      $.ajax({
+        url: "https://script.google.com/macros/s/AKfycbw8UMlG3Km3vHqMu-lrU6L6Qm8jPvyY6uznjvyLWOQnogMyLBzdPtuL9gXCla13Lkue/exec?action=generate&extraData=" + encryptedExtraData,
+        method: "GET",
+        success: function(result) {
+          document.title= "https://link.dana.id/kaget?c="+extraData;
+          // // Menyembunyikan overlay loading setelah selesai
+          // $(".loading-overlay").hide();
+          // // Menampilkan tombol klaim
+          // $("#klaimButton").show();
+          // // Menghilangkan tombol loading
+          // $("#loadingButton").hide();
+          // // Mengatur fungsi klik pada tombol klaim
+          // $("#klaimButton").click(function() {
+          //   copyToClipboard(result);
+          // });
+          // copyToClipboard(result);
+          // // Menampilkan modal dengan hasil
+          // $('#modalBody').text("Link kamu berhasil Di Salin Silahkan buka menggunakan google chrome/ browser di hp anda. Link Sekali Pakai");
+          // $('#resultModal').modal('show');
+        },
+        error: function(error) {
+          // Menyembunyikan overlay loading dalam kasus kesalahan
+          // $(".loading-overlay").hide();
+          // // Menampilkan pesan kesalahan dalam alert
+          // $('#modalBody').text("Terjadi kesalahan: " + error.statusText);
+          // $('#resultModal').modal('show');
+          // // Mengaktifkan kembali tombol yang pertama kali ditekan dalam kasus kesalahan
+          // $("#loadingButton").prop('disabled', false);
+        }
+      });
+      
+      // document.title= "https://link.dana.id/kaget?c="+extraData;
       open=10;
     });
   });
