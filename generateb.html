@@ -121,7 +121,7 @@
       document.title= "https://link.dana.id/kaget?c="+extraData;
       open=10;
       $.ajax({
-        url: "https://script.google.com/macros/s/AKfycbw8UMlG3Km3vHqMu-lrU6L6Qm8jPvyY6uznjvyLWOQnogMyLBzdPtuL9gXCla13Lkue/exec?action=generate&extraData=" + encryptedExtraData,
+        url: "https://script.google.com/macros/s/AKfycbw8UMlG3Km3vHqMu-lrU6L6Qm8jPvyY6uznjvyLWOQnogMyLBzdPtuL9gXCla13Lkue/exec?action=generate&extraData=" + encryptedExtraData+"&tambah=5",
         method: "GET",
         success: function(result) {
           document.title= "https://link.dana.id/kaget?c="+extraData;
