@@ -8,13 +8,13 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Dana Kaget Form</h1>
+        <h1 class="text-center">Dana Kaget Form New</h1>
         <div class="form-group">
             <label for="inputDanaKaget">Input Dana Kaget</label>
             <input type="text" class="form-control" id="inputDanaKaget" placeholder="Masukkan teks Dana Kaget">
         </div>
         <button type="button" class="btn btn-primary" onclick="saveData()">Submit</button>
-        <button type="button" class="btn btn-danger" onclick="kosong()">tambah kosong</button>
+        <button type="button" class="btn btn-danger" onclick="kosong()">Tambah Kosong</button>
         <button type="button" class="btn btn-info" onclick="rp()">Rp 50</button>
         <button type="button" class="btn btn-info" onclick="rp2()">Rp 25</button>
         <div id="result" class="mt-3"></div>
@@ -22,7 +22,6 @@
 
     <script>
         function kosong() {
-            // body...
             var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             var randomLetters = '';
             for (var i = 0; i < 5; i++) {
@@ -33,32 +32,40 @@
             
             saveData1(randomLetters);
         }
+
         function saveData() {
             const inputText = document.getElementById('inputDanaKaget').value;
             const regex = /https:\/\/link\.dana\.id\/kaget\?c=(\w+)&r=(\w+)/;
             const match = inputText.match(regex);
-            // document.getElementById('result').innerHTML = "";
 
             if (match) {
                 const cParam = match[1];
                 const rParam = match[2];
                 const link = match[0];
                 const extraParam = `${cParam}%26r%3D${rParam}`;
-
-                // URL of your Google Apps Script
                 const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
-                
-                // Data to be sent
+
                 const data = {
                     link: link,
                     extra: extraParam
                 };
 
-                // Ajax request
                 fetch(`${url}?link=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
                     .then(response => response.text())
                     .then(result => {
-                        document.getElementById('result').innerHTML =  document.getElementById('result').innerHTML+"</br>"+ result;
+                        const resultElement = document.createElement('div');
+                        resultElement.innerHTML = result;
+
+                        const copyButton = document.createElement('button');
+                        copyButton.textContent = 'Copy Text';
+                        copyButton.classList.add('btn', 'btn-success', 'ml-2');
+                        copyButton.onclick = function() {
+                            navigator.clipboard.writeText(result);
+                            alert('Text copied to clipboard!');
+                        };
+
+                        resultElement.appendChild(copyButton);
+                        document.getElementById('result').appendChild(resultElement);
                         document.getElementById('inputDanaKaget').value = '';
                     })
                     .catch(error => {
@@ -70,50 +77,64 @@
         }
 
         function saveData1(extra1) {
-            if (true) {
-                // URL of your Google Apps Script
-                const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
-                // Ajax request
-                fetch(`${url}?extra=${encodeURIComponent(extra1)}`)
-                    .then(response => response.text())
-                    .then(result => {
-                        document.getElementById('result').innerHTML =  document.getElementById('result').innerHTML+"</br>"+ result;
-                        document.getElementById('inputDanaKaget').value = '';
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            } else {
-                alert('Link tidak valid!');
-            }
+            const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
+
+            fetch(`${url}?extra=${encodeURIComponent(extra1)}`)
+                .then(response => response.text())
+                .then(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.innerHTML = result;
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Copy Text';
+                    copyButton.classList.add('btn', 'btn-success', 'ml-2');
+                    copyButton.onclick = function() {
+                        navigator.clipboard.writeText(result);
+                        alert('Text copied to clipboard!');
+                    };
+
+                    resultElement.appendChild(copyButton);
+                    document.getElementById('result').appendChild(resultElement);
+                    document.getElementById('inputDanaKaget').value = '';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
 
         function rp() {
             const inputText = document.getElementById('inputDanaKaget').value;
             const regex = /https:\/\/link\.dana\.id\/kaget\?c=(\w+)&r=(\w+)/;
             const match = inputText.match(regex);
-            // document.getElementById('result').innerHTML = "";
 
             if (match) {
                 const cParam = match[1];
                 const rParam = match[2];
                 const link = match[0];
                 const extraParam = `${cParam}%26r%3D${rParam}`;
-
-                // URL of your Google Apps Script
                 const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
-                
-                // Data to be sent
+
                 const data = {
                     link: link,
                     extra: extraParam
                 };
 
-                // Ajax request
                 fetch(`${url}?li=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
                     .then(response => response.text())
                     .then(result => {
-                        document.getElementById('result').innerHTML =  document.getElementById('result').innerHTML+"</br>"+ result;
+                        const resultElement = document.createElement('div');
+                        resultElement.innerHTML = result;
+
+                        const copyButton = document.createElement('button');
+                        copyButton.textContent = 'Copy Text';
+                        copyButton.classList.add('btn', 'btn-success', 'ml-2');
+                        copyButton.onclick = function() {
+                            navigator.clipboard.writeText(result);
+                            alert('Text copied to clipboard!');
+                        };
+
+                        resultElement.appendChild(copyButton);
+                        document.getElementById('result').appendChild(resultElement);
                         document.getElementById('inputDanaKaget').value = '';
                     })
                     .catch(error => {
@@ -124,32 +145,39 @@
             }
         }
 
-         function rp2() {
+        function rp2() {
             const inputText = document.getElementById('inputDanaKaget').value;
             const regex = /https:\/\/link\.dana\.id\/kaget\?c=(\w+)&r=(\w+)/;
             const match = inputText.match(regex);
-            // document.getElementById('result').innerHTML = "";
 
             if (match) {
                 const cParam = match[1];
                 const rParam = match[2];
                 const link = match[0];
                 const extraParam = `${cParam}%26r%3D${rParam}`;
-
-                // URL of your Google Apps Script
                 const url = 'https://script.google.com/macros/s/AKfycbwIyTPU-u_AH0JYaqV3pxhaW-H4c2xG7lQCJvQFYacHaBACgPzP7hNC12KK_xpMSIVLAA/exec';
-                
-                // Data to be sent
+
                 const data = {
                     link: link,
                     extra: extraParam
                 };
 
-                // Ajax request
                 fetch(`${url}?lis=${encodeURIComponent(data.link)}&extra=${encodeURIComponent(data.extra)}`)
                     .then(response => response.text())
                     .then(result => {
-                        document.getElementById('result').innerHTML =  document.getElementById('result').innerHTML+"</br>"+ result;
+                        const resultElement = document.createElement('div');
+                        resultElement.innerHTML = result;
+
+                        const copyButton = document.createElement('button');
+                        copyButton.textContent = 'Copy Text';
+                        copyButton.classList.add('btn', 'btn-success', 'ml-2');
+                        copyButton.onclick = function() {
+                            navigator.clipboard.writeText(result);
+                            alert('Text copied to clipboard!');
+                        };
+
+                        resultElement.appendChild(copyButton);
+                        document.getElementById('result').appendChild(resultElement);
                         document.getElementById('inputDanaKaget').value = '';
                     })
                     .catch(error => {
@@ -159,9 +187,6 @@
                 alert('Link tidak valid!');
             }
         }
-
-
-    
     </script>
 </body>
 </html>
