@@ -1,0 +1,66 @@
+{
+    "packageId": "twk-2023",
+    "packageName": "Tes Wawasan Kebangsaan 2023",
+    "questions": [
+      {
+        "id": 1,
+        "text": "Siapakah proklamator kemerdekaan Indonesia?",
+        "options": [
+          "Soekarno dan Mohammad Hatta",
+          "Soeharto dan Adam Malik",
+          "Megawati Soekarnoputri dan Jusuf Kalla",
+          "Joko Widodo dan Ma'ruf Amin",
+          "Prabowo Subianto dan Sandiaga Uno"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 2,
+        "text": "Apa nama lain dari Pancasila?",
+        "options": [
+          "Undang-Undang Dasar",
+          "Bhinneka Tunggal Ika",
+          "Dasar Negara",
+          "Undang-Undang 1945",
+          "Konstitusi Indonesia"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 3,
+        "text": "Kapan hari Pancasila diperingati?",
+        "options": [
+          "1 Mei",
+          "17 Agustus",
+          "28 Oktober",
+          "1 Juni",
+          "10 November"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 4,
+        "text": "Apa arti Bhinneka Tunggal Ika?",
+        "options": [
+          "Persatuan Indonesia",
+          "Keadilan Sosial",
+          "Berbeda-beda tetapi tetap satu",
+          "Kemanusiaan yang adil dan beradab",
+          "Gotong royong"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 5,
+        "text": "Siapa yang pertama kali mencetuskan istilah Pancasila?",
+        "options": [
+          "Soekarno",
+          "Mohammad Hatta",
+          "Soepomo",
+          "Mohammad Yamin",
+          "Ki Hajar Dewantara"
+        ],
+        "correctAnswer": 0
+      }
+    ]
+  }

@@ -1,0 +1,14 @@
+{
+  "packages": [
+    {
+      "id": "twk-2023",
+      "name": "Tpppk paket 1",
+      "description": "Paket soal TWK CPNS tahun 2023"
+    },
+    {
+      "id": "tiu-2023",
+      "name": "PPPK PAKET 2",
+      "description": "Paket soal TIU CPNS tahun 2023"
+    }
+  ]
+}

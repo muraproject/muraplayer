@@ -1,0 +1,66 @@
+{
+    "packageId": "tiu-2023",
+    "packageName": "Tes Intelegensi Umum 2023",
+    "questions": [
+      {
+        "id": 1,
+        "text": "Jika 3x + 7 = 22, berapakah nilai x?",
+        "options": [
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 2,
+        "text": "Manakah yang bukan merupakan bilangan prima?",
+        "options": [
+          "2",
+          "3",
+          "5",
+          "7",
+          "9"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 3,
+        "text": "Jika sebuah persegi memiliki luas 64 cm², berapakah panjang sisinya?",
+        "options": [
+          "4 cm",
+          "6 cm",
+          "8 cm",
+          "10 cm",
+          "12 cm"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 4,
+        "text": "Lanjutkan pola berikut: 2, 4, 8, 16, ...",
+        "options": [
+          "24",
+          "28",
+          "30",
+          "32",
+          "36"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 5,
+        "text": "Jika hari ini adalah hari Senin, hari apakah 100 hari dari sekarang?",
+        "options": [
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat"
+        ],
+        "correctAnswer": 1
+      }
+    ]
+  }

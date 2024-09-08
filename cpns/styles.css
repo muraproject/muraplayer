@@ -1,0 +1,67 @@
+.screen {
+    display: block;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+.question-button {
+    width: 40px;
+    height: 40px;
+}
+
+.question-button.unanswered {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.question-button.answered {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.question-button.skipped {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+#timer {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.result-item.correct {
+    background-color: #d4edda;
+}
+
+.result-item.incorrect {
+    background-color: #f8d7da;
+}
+
+/* ... (style lainnya tetap sama) ... */
+
+
+
+body {
+    padding-bottom: 56px; /* Sesuaikan dengan tinggi bottom navigation */
+}
+
+.navbar.fixed-bottom {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    background-color: #f8f9fa;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar.fixed-bottom .nav-link {
+    color: #6c757d;
+    text-decoration: none;
+    padding: 5px 10px;
+}
+
+.navbar.fixed-bottom .nav-link.active {
+    color: #007bff;
+    font-weight: bold;
+}

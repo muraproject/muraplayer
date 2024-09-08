@@ -1,0 +1,14 @@
+{
+  "packages": [
+    {
+      "id": "twk-2023",
+      "name": "Tes Wawasan Kebangsaan 2023",
+      "description": "Paket soal TWK CPNS tahun 2023"
+    },
+    {
+      "id": "tiu-2023",
+      "name": "Tes Intelegensi Umum 2023",
+      "description": "Paket soal TIU CPNS tahun 2023"
+    }
+  ]
+}
