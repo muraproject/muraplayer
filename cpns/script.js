@@ -134,7 +134,7 @@ function showScreen(screenId) {
 function showWarningScreen() {
     showScreen('warning-screen');
     document.getElementById('start-test').addEventListener('click', startTest);
-    document.getElementById('cancel-test').addEventListener('click', () => window.location.href = '/');
+    document.getElementById('cancel-test').addEventListener('click', () => window.location.href = '/muraplayer/cpns');
 }
 
 function startTest() {
