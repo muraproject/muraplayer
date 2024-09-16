@@ -222,9 +222,9 @@ document.getElementById('prev-question').addEventListener('click', () => {
 document.getElementById('clear-answer').addEventListener('click', clearAnswer);
 
 document.getElementById('finish-test').addEventListener('click', () => {
-    if (confirm('Apakah Anda yakin ingin menyelesaikan tes?')) {
+    // if (confirm('Apakah Anda yakin ingin menyelesaikan tes?')) {
         finishTest();
-    }
+    // }
 });
 
 function renderQuestionNavigation() {
