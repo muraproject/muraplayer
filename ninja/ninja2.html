@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/konva@9.3.15/konva.min.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Konva Fruit Ninja-like Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #knives {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .knife {
+            width: 60px;
+            height: 60px;
+            margin: 0 10px;
+            cursor: pointer;
+            border: 3px solid black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .knife.selected {
+            border-color: red;
+            transform: scale(1.1);
+        }
+        .knife-icon {
+            width: 40px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="knives">
+        <div class="knife" data-shape="rectangle">
+            <div class="knife-icon" style="width: 40px; height: 20px; background-color: blue;"></div>
+        </div>
+        <div class="knife" data-shape="triangle">
+            <div class="knife-icon" style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid green;"></div>
+        </div>
+        <div class="knife" data-shape="star">
+            <div class="knife-icon" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background-color: purple; width: 40px; height: 40px;"></div>
+        </div>
+    </div>
+    <script>
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        var stage = new Konva.Stage({
+            container: 'container',
+            width: width,
+            height: height,
+        });
+
+        var layer = new Konva.Layer();
+        stage.add(layer);
+
+        var selectedKnife = 'rectangle'; // Default selected knife
+
+        // Knife selection
+        var knives = document.querySelectorAll('.knife');
+        knives.forEach(knife => {
+            knife.addEventListener('click', () => {
+                selectedKnife = knife.dataset.shape;
+                knives.forEach(k => k.classList.remove('selected'));
+                knife.classList.add('selected');
+            });
+        });
+
+        function createFruit() {
+            var fruit = new Konva.Circle({
+                x: Math.random() * stage.width(),
+                y: stage.height(),
+                radius: 25,
+                fill: 'red',
+                stroke: 'black',
+                strokeWidth: 2,
+            });
+
+            layer.add(fruit);
+
+            fruit.on('click tap', function() {
+                if (!this.isDragging()) {
+                    changeFruitShape(this);
+                }
+            });
+
+            fruit.to({
+                y: -50,
+                duration: 8,
+                onFinish: function() {
+                    fruit.destroy();
+                    layer.draw();
+                }
+            });
+        }
+
+        function changeFruitShape(fruit) {
+            var newShape;
+            switch (selectedKnife) {
+                case 'rectangle':
+                    newShape = new Konva.Rect({
+                        x: fruit.x() - 25,
+                        y: fruit.y() - 25,
+                        width: 50,
+                        height: 50,
+                        fill: 'blue',
+                        stroke: 'black',
+                        strokeWidth: 2,
+                        draggable: true,
+                    });
+                    break;
+                case 'triangle':
+                    newShape = new Konva.RegularPolygon({
+                        x: fruit.x(),
+                        y: fruit.y(),
+                        sides: 3,
+                        radius: 30,
+                        fill: 'green',
+                        stroke: 'black',
+                        strokeWidth: 2,
+                        draggable: true,
+                    });
+                    break;
+                case 'star':
+                    newShape = new Konva.Star({
+                        x: fruit.x(),
+                        y: fruit.y(),
+                        numPoints: 5,
+                        innerRadius: 15,
+                        outerRadius: 30,
+                        fill: 'purple',
+                        stroke: 'black',
+                        strokeWidth: 2,
+                        draggable: true,
+                    });
+                    break;
+            }
+
+            newShape.on('mouseover', function () {
+                document.body.style.cursor = 'pointer';
+            });
+            newShape.on('mouseout', function () {
+                document.body.style.cursor = 'default';
+            });
+
+            layer.add(newShape);
+            fruit.destroy();
+            layer.draw();
+        }
+
+        // Create a new fruit every 2 seconds
+        setInterval(createFruit, 2000);
+
+        // Select the default knife
+        document.querySelector('.knife[data-shape="rectangle"]').classList.add('selected');
+
+        // Resize function
+        function fitStageIntoParentContainer() {
+            var container = document.querySelector('#container');
+
+            // now we need to fit stage into parent container
+            var containerWidth = container.offsetWidth;
+            var containerHeight = container.offsetHeight;
+
+            // scale the stage to fit into the container
+            stage.width(containerWidth);
+            stage.height(containerHeight);
+        }
+
+        fitStageIntoParentContainer();
+        // adapt the stage on any window resize
+        window.addEventListener('resize', fitStageIntoParentContainer);
+    </script>
+</body>
+</html>
