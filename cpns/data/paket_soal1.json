@@ -1,0 +1,604 @@
+{
+    "packageId": "Paket 1 SKD CPNS",
+    "packageName": "Latihan Soal SKD Paket 1 CPNS",
+    "questions": [
+        {
+            "id": 1,
+            "text": "Orde Baru menggantikan Orde Lama di Indonesia dan dimulai dengan dikeluarkannya Surat Perintah 11 Maret 1966. Tujuan utama dari Orde Baru adalah menegakkan kembali tatanan kehidupan berdasarkan Pancasila dan Undang-Undang Dasar 1945. Dilihat dari historis kelahirannya, Orde Baru merupakan upaya pemerintah menegakkan pemerintahan yang bersifat...",
+            "options": [
+              "Demokratis Berkeadilan",
+              "Konstitusional demokratis",
+              "Dictator",
+              "Demokratis Pancasilais",
+              "Feudal oligarkis"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 2,
+            "text": "Batas usia minimal untuk mengikuti Pemilihan Kepala Desa adalah ....",
+            "options": [
+              "21 Tahun",
+              "25 Tahun",
+              "18 Tahun",
+              "35 Tahun",
+              "40 Tahun"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 3,
+            "text": "Metode efektif yang digunakan KPK untuk menangkap koruptor adalah ....",
+            "options": [
+              "Survei lembaga negara",
+              "Sosialisasi antikorupsi",
+              "Operasi tangkap tangan",
+              "Regulasi hukum",
+              "Pendidikan antikorupsi"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 4,
+            "text": "Pasal UUD 1945 yang mengatur tentang lagu kebangsaan Indonesia Raya adalah...",
+            "options": [
+              "Pasal 36",
+              "Pasal 36A",
+              "Pasal 36B",
+              "Pasal 36C",
+              "Pasal 35"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 5,
+            "text": "Penulisan nama dan gelar yang benar adalah...",
+            "options": [
+              "Ir. Bambang Sugiharto, M.B.A.",
+              "H. Ahmad Fauzan S.Pd.",
+              "Dr. Siti Maryam",
+              "M. Reza Anwar, S.Kom.",
+              "Budi Santoso, S.T., M.T."
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 6,
+            "text": "Menjadi manusia yang berintegritas menuntut kita untuk selalu ....",
+            "options": [
+              "Percaya terhadap orang lain",
+              "Disiplin",
+              "Konsistensi",
+              "Perilaku jujur",
+              "Tanggung jawab"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 7,
+            "text": "Apakah OPEC hanya memperhatikan kepentingan ekonomi negara-negara anggotanya?",
+            "options": [
+              "Ya, karena OPEC didirikan untuk meningkatkan kekayaan negara anggota",
+              "Tidak, karena OPEC juga memperhatikan kelestarian lingkungan",
+              "Ya, tetapi dengan syarat OPEC harus mempertahankan harga minyak dunia",
+              "Tidak, karena OPEC memiliki tanggung jawab global dalam pengelolaan energi",
+              "Tidak, karena OPEC juga harus mempertimbangkan kesejahteraan masyarakat dunia"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 8,
+            "text": "Wilayah Nusantara yang saat ini dikenal sebagai Indonesia, pada masa lalu juga meliputi wilayah negara...",
+            "options": [
+              "Malaysia",
+              "Singapura",
+              "Brunei",
+              "Timor Leste",
+              "Semua benar"
+            ],
+            "correctAnswer": 4
+          },
+          {
+            "id": 9,
+            "text": "Dalam kasus dugaan korupsi yang melibatkan penggeledahan oleh KPK, asas yang digunakan dalam penegakan hukum adalah ...",
+            "options": [
+              "Lex superior derogat legi inferior",
+              "Lex imperfect",
+              "Equality before the law",
+              "Lex posterior derogat legi priori",
+              "Lex specialis derogat legi generali"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 10,
+            "text": "Penulisan nama dan gelar yang benar adalah...",
+            "options": [
+              "Ir. Budi Santoso, M.Sc.",
+              "Hj. Dewi Saraswati, S.T., M.T.",
+              "Dr. Bambang Sutrisno, M.B.A.",
+              "Prof. Dr. Ahmad Fauzan, S.Pd.",
+              "H. Siti Maryam, S.Kom., M.Kom."
+            ],
+            "correctAnswer": 3
+          },{
+            "id": 11,
+            "text": "Peran rakyat (sipil) dalam nasionalisme kewarganegaraan mencakup ....",
+            "options": [
+              "Memimpin negara",
+              "Mengatur pemerintahan",
+              "Mengikuti wajib militer",
+              "Mengambil keputusan negara",
+              "Menyusun undang-undang"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 12,
+            "text": "Pemerintahan yang dipegang oleh golongan bangsawan atau keturunan bangsawan disebut...",
+            "options": [
+              "Timokrasi",
+              "Aristokrasi",
+              "Oligarki",
+              "Tirani",
+              "Monarki"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 13,
+            "text": "Hal berikut ini dapat mengurangi rasa nasionalisme, kecuali...",
+            "options": [
+              "Fanatisme agama",
+              "Patriotisme",
+              "Diskriminasi ras",
+              "Chauvinisme",
+              "Nepotisme"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 14,
+            "text": "Tokoh yang berpidato dalam sidang BPUPKI tanggal 29 Mei - 1 Juni 1945 mencetuskan wacana kemerdekaan dengan pidato ....",
+            "options": [
+              "Panca Karsa",
+              "Pancasila",
+              "Pancakarsa",
+              "Pancanegara",
+              "Pancasama"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 15,
+            "text": "Undang-undang yang mengatur tentang pertahanan negara diatur dalam ....",
+            "options": [
+              "UU No. 32 Tahun 2002",
+              "UU No. 3 Tahun 2004",
+              "UU No. 2 Tahun 2002",
+              "UU No. 3 Tahun 2002",
+              "UU No. 32 Tahun 2004"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 16,
+            "text": "Sikap dan perilaku yang menunjukkan kesadaran akan pentingnya menjaga kesatuan dan persatuan bangsa disebut ....",
+            "options": [
+              "Nasionalisme",
+              "Wawasan nasional",
+              "Ketahanan nasional",
+              "Wawasan kebangsaan",
+              "Wawasan nusantara"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 17,
+            "text": "Sikap cinta terhadap bangsa tercermin dalam perilaku ....",
+            "options": [
+              "Mengutamakan penggunaan produk luar negeri",
+              "Menjaga kebersihan lingkungan sekitar",
+              "Meniru kebiasaan negara lain",
+              "Mengkritik pemerintah tanpa dasar",
+              "Mengabaikan produk dalam negeri"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 18,
+            "text": "Nilai Pancasila yang memungkinkan adanya pembaruan dan inovasi sesuai kebutuhan zaman disebut ....",
+            "options": [
+              "Nilai dasar",
+              "Nilai instrumental",
+              "Nilai inovasi",
+              "Nilai dinamika",
+              "Nilai proletar"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 19,
+            "text": "Tujuan utama didirikannya OPEC adalah ...",
+            "options": [
+              "menghimpun negara-negara produsen dan pengekspor minyak",
+              "memenuhi kebutuhan minyak bagi negara-negara anggota",
+              "menghemat penggalian sumber alam minyak",
+              "meningkatkan produksi minyak anggotanya",
+              "terjadinya persaingan antar anggotanya"
+            ],
+            "correctAnswer": 0
+          },
+          {
+            "id": 20,
+            "text": "Ombudsman menemukan bahwa penyelenggaraan pelayanan publik untuk pembuatan e-KTP oleh Kementerian Dalam Negeri terkendala lambatnya proses dan berbagai masalah di daerah-daerah. Ditemukan juga praktik percetakan KTP dengan biaya tidak resmi. Pelanggaran ini menunjukkan ketidakmampuan dalam menjalankan sila...",
+            "options": [
+              "Ketuhanan Yang Maha Esa",
+              "Kemanusiaan yang Adil dan Beradab",
+              "Persatuan Indonesia",
+              "Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan dalam Permusyawaratan/Perwakilan",
+              "Keadilan Sosial bagi Seluruh Rakyat Indonesia"
+            ],
+            "correctAnswer": 4
+          }, {
+            "id": 21,
+            "text": "Peristiwa tawuran pelajar sering kali disebabkan oleh rendahnya ....",
+            "options": [
+              "Rasa cinta tanah air",
+              "Kesadaran terhadap hukum",
+              "Pemahaman bela negara",
+              "Nilai dan norma dalam pergaulan",
+              "Rasa solidaritas"
+            ],
+            "correctAnswer": 3
+          },
+          {
+            "id": 22,
+            "text": "Istilah \"Nusantara\" diambil dari bahasa Jawa Kuno yang berarti...",
+            "options": [
+              "Pulau-pulau",
+              "Lautan luas",
+              "Kepulauan luar",
+              "Negeri asing",
+              "Negeri sebelah"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 23,
+            "text": "Mahkamah Konstitusi memiliki peran penting dalam sistem ketatanegaraan Indonesia, salah satunya adalah menguji undang-undang terhadap UUD 1945. Keputusan Mahkamah Konstitusi bersifat final dan mengikat, yang berarti...",
+            "options": [
+              "Tidak dapat diajukan banding",
+              "Dapat diajukan banding",
+              "Dapat direvisi oleh Presiden",
+              "Dapat ditinjau ulang oleh DPR",
+              "Dapat direvisi oleh Mahkamah Agung"
+            ],
+            "correctAnswer": 0
+          },
+          {
+            "id": 24,
+            "text": "Tata urutan peraturan perundang-undangan dari UUD 1945 sampai peraturan desa mencerminkan integritas dalam aspek ....",
+            "options": [
+              "Asas kepastian hukum",
+              "Asas keterbukaan",
+              "Asas tertib penyelenggara negara",
+              "Asas efisiensi",
+              "Asas akuntabilitas"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 25,
+            "text": "Undang-undang yang terkait dengan Pertahanan Negara adalah...",
+            "options": [
+              "Undang-Undang No. 56 tahun 1999",
+              "Undang-Undang No. 3 tahun 2002",
+              "Undang-Undang No. 20 tahun 1982",
+              "Undang-Undang No. 29 tahun 1954",
+              "Undang-Undang No. 54 tahun 1999"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 26,
+            "text": "Yang bukan termasuk lembaga antikorupsi nonpemerintah adalah ....",
+            "options": [
+              "Imparsial",
+              "KPK",
+              "Indonesia Legal Roundtable",
+              "Transparency International Indonesia",
+              "LBH Jakarta"
+            ],
+            "correctAnswer": 1
+          },
+          {
+            "id": 27,
+            "text": "Menurut KPK, berapa jumlah nilai yang membentuk konsep integritas nasional?",
+            "options": [
+              "5 nilai",
+              "7 nilai",
+              "9 nilai",
+              "11 nilai",
+              "13 nilai"
+            ],
+            "correctAnswer": 2
+          },
+          {
+            "id": 28,
+            "text": "Polemik empat pilar kebangsaan yang digagas Taufik Kiemas mengalami problematika terhadap kedudukan ....",
+            "options": [
+              "Pancasila",
+              "UUD 1945",
+              "NKRI",
+              "Bhinneka Tunggal Ika",
+              "Sistem Peradilan Nasional"
+            ],
+            "correctAnswer": 0
+          },
+          {
+            "id": 29,
+            "text": "Ombudsman menilai penyelenggaraan pelayanan publik soal pembuatan e-KTP oleh Kementerian Dalam Negeri berlangsung lambat dan banyak persoalan. Pihaknya menemukan banyak kekacauan di berbagai daerah. Saat ini terjadi penurunan minat mengurus e-KTP yang disebabkan karena lambatnya pelayanan, sulitnya mengurus e-KTP, dan ditemukannya praktik percetakan KTP dengan biaya yang tidak resmi. Sulitnya beberapa daerah dalam pengurusan percetakan KTP merupakan pelanggaran terhadap sila...",
+            "options": [
+              "Ketuhanan Yang Maha Esa",
+              "Kemanusiaan yang Adil dan Beradab",
+              "Persatuan Indonesia",
+              "Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan dalam Permusyawaratan/Perwakilan",
+              "Keadilan Sosial bagi Seluruh Rakyat Indonesia"
+            ],
+            "correctAnswer": 4
+          },
+          {
+            "id": 30,
+            "text": "Di bawah ini yang bukan merupakan prinsip-prinsip nasionalisme Indonesia adalah...",
+            "options": [
+              "Kesatuan Sejarah",
+              "Kesatuan Tradisi",
+              "Kesatuan Nasib",
+              "Kesatuan Kebudayaan",
+              "Kesatuan Asas Kerohanian"
+            ],
+            "correctAnswer": 1
+          },
+      {
+        "id": 31,
+        "text": "MATAHARI : TERANG = MALAM : ….",
+        "options": [
+          "Bulan",
+          "Gelap",
+          "Senja",
+          "Cahaya",
+          "Bintang"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 32,
+        "text": "Diketahui lamanya belajar mandiri siswa sebanding dengan nilai ujian. Jika siswa dengan nilai ujian 75 melakukan belajar mandiri 15 jam/hari, maka lamanya belajar mandiri siswa dengan nilai 45 adalah ….",
+        "options": [
+          "9 jam/hari",
+          "10 jam/hari",
+          "11 jam/hari",
+          "8 jam/hari",
+          "7 jam/hari"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 33,
+        "text": "Semua siswa harus hadir. Sebagian siswa terlambat. Kesimpulannya...",
+        "options": [
+          "Semua siswa tidak hadir",
+          "Semua siswa terlambat",
+          "Sebagian siswa tidak hadir",
+          "Sebagian siswa hadir dan terlambat",
+          "Semua siswa hadir dan tidak terlambat"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 34,
+        "text": "9, 18, 27, 36, …, 54",
+        "options": [
+          "40",
+          "42",
+          "45",
+          "48",
+          "50"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 35,
+        "text": "10u + 7 - 9v = 12 9v - 35 = 26\nHubungan nilai u dan v yang tepat adalah...",
+        "options": [
+          "u + v = 8",
+          "10u = v",
+          "u > v",
+          "u = v - 1",
+          "u = v"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 36,
+        "text": "Seorang penjual mengantar pesanan sebanyak 36 mangkuk bakso ke sebuah tempat. Si penjual hanya bisa membawa 9 mangkuk setiap kali pengantaran. Berapa kali si penjual harus mengantarkan seluruh pesanan?",
+        "options": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 37,
+        "text": "K, L, L, M, N, N, O, P, P, ..., ...",
+        "options": [
+          "Q dan Q",
+          "Q dan R",
+          "R dan Q",
+          "R dan R",
+          "S dan S"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 38,
+        "text": "2400, 1200, 400, 100, 20, ….",
+        "options": [
+          "15",
+          "10",
+          "5",
+          "2",
+          "1"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 39,
+        "text": "Dermawan >< ...",
+        "options": [
+          "Pelit",
+          "Baik",
+          "Murah hati",
+          "Sopan",
+          "Kasih"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 40,
+        "text": "Sebuah menara yang tingginya 50 meter difoto dalam ukuran kecil dengan skala 1:1000, kemudian foto tersebut diperbesar dengan skala 5:1, maka tinggi menara di foto terakhir adalah...",
+        "options": [
+          "30",
+          "25",
+          "20",
+          "15",
+          "10"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 41,
+        "text": "Tentukan himpunan penyelesaian dari 2(x - 1) > 3(x + 2).",
+        "options": [
+          "x > -8",
+          "x < -8",
+          "x > 8",
+          "x < 8",
+          "x > 4"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 42,
+        "text": "8-9-10-8-9-10-11-8-9-10-11-12-...-...",
+        "options": [
+          "9-10",
+          "10-11",
+          "11-12",
+          "12-13",
+          "13-14"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 43,
+        "text": "Seekor gajah dapat menghabiskan daun di hutan selama 4 hari, sedangkan seekor zebra dapat menghabiskan daun di hutan selama 8 hari. Jika seekor gajah dan seekor zebra menghabiskan daun di hutan secara bersama-sama, maka waktu yang diperlukan adalah ...",
+        "options": [
+          "2 hari",
+          "2.67 hari",
+          "3 hari",
+          "3.5 hari",
+          "4 hari"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 44,
+        "text": "3, 6, …, …, 12, 14, 24, 16, 48, 18.",
+        "options": [
+          "6, 9",
+          "9, 12",
+          "6, 9",
+          "8, 11",
+          "9, 11"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 45,
+        "text": "5, 10, 20, …, 80",
+        "options": [
+          "30",
+          "40",
+          "50",
+          "60",
+          "70"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 46,
+        "text": "TANGAN : SARUNG TANGAN = ... : ...",
+        "options": [
+          "Kaki : Sepatu",
+          "Mata : Kacamata",
+          "Kepala : Topi",
+          "Telinga : Anting",
+          "Jari : Cincin"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 47,
+        "text": "8-16-32-64-128-...-...",
+        "options": [
+          "144-288",
+          "160-320",
+          "192-384",
+          "224-448",
+          "256-512"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 48,
+        "text": "0,4 × {(6⅓ × 12) – (100 : 2⅔)} =",
+        "options": [
+          "4,8",
+          "5,6",
+          "6,4",
+          "7,2",
+          "6,8"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 49,
+        "text": "Hana agak kurang tinggi dibandingkan Lina, Wati sama tingginya dengan Lina tetapi kalah tinggi dibandingkan Dina, sedangkan Dina lebih tinggi daripada Lina tetapi lebih rendah dibandingkan Rina yang lebih tinggi dibandingkan Anya. Yang paling pendek adalah...",
+        "options": [
+          "Dina",
+          "Rina",
+          "Hana",
+          "Wati",
+          "Lina"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 50,
+        "text": "Seekor kuda dapat menghabiskan rumput di lapangan A dalam waktu 5 minggu. Jika 2 ekor kuda lainnya ikut makan di lapangan yang sama, berapa lama waktu yang dibutuhkan untuk habisnya rumput?",
+        "options": [
+          "8 minggu",
+          "10 minggu",
+          "12 minggu",
+          "15 minggu",
+          "20 minggu"
+        ],
+        "correctAnswer": 2
+      }
+    ]
+  }

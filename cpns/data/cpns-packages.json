@@ -1,9 +1,9 @@
 {
   "packages": [
     {
-      "id": "twk-2023",
-      "name": "Tes Wawasan Kebangsaan 2023",
-      "description": "Paket soal TWK CPNS tahun 2023"
+      "id": "paket_soal1",
+      "name": "Paket 1 SKD CPNS",
+      "description": "Latihan Soal SKD Paket 1 CPNS"
     },
     {
       "id": "tiu-2023",

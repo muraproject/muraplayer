@@ -10,10 +10,10 @@
 </head>
 <body>
     <div id="app" class="container py-4">
-        <!-- <div id="home-screen" class="screen">
-            <h1 class="text-center mb-4">Simulasi CAT CPNS</h1>
+        <div id="home-screen" class="screen">
+            <!-- <h1 class="text-center mb-4">Simulasi CAT CPNS</h1> -->
             <div id="package-list" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"></div>
-        </div> -->
+        </div>
         
         <div id="warning-screen" class="screen hidden">
             <div class="card">
@@ -39,10 +39,17 @@
                 </div>
             </div>
             <div id="navigation" class="d-flex justify-content-between align-items-center">
-                <button id="prev-question" class="btn btn-secondary">Sebelumnya</button>
-                <button id="clear-answer" class="btn btn-warning">Kosongkan Jawaban</button>
-                <button id="next-question" class="btn btn-primary">Selanjutnya</button>
-                <button id="finish-test" class="btn btn-danger">Selesai</button>
+                <div id="row">
+                    <button id="prev-question" class="btn btn-secondary">Sebelumnya</button>
+                    <div id="row"></div>
+                    <button id="clear-answer" class="btn btn-warning">Kosongkan Jawaban</button>
+                </div>
+                <div id="row"></div>
+                <div id="row">
+                    <button id="next-question" class="btn btn-primary">Selanjutnya</button>
+                    <div id="row"></div>
+                    <button id="finish-test" class="btn btn-danger">Selesai</button>
+                </div>
             </div>
         </div>
         
