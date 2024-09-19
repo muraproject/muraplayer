@@ -599,6 +599,606 @@
           "20 minggu"
         ],
         "correctAnswer": 2
+      },
+      {
+        "id": 51,
+        "text": "1 dekade + 3 lustrum = ….",
+        "options": [
+          "20 tahun",
+          "25 tahun",
+          "30 tahun",
+          "35 tahun",
+          "40 tahun"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 52,
+        "text": "7, 14, …, …, 28, 30, 56, 33, 112, 38.",
+        "options": [
+          "14, 21",
+          "21, 28",
+          "14, 21",
+          "18, 22",
+          "21, 25"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 53,
+        "text": "Umur Lina dua tahun lebih tua daripada Lili. Lima tahun mendatang, umur Lili adalah dua kali umur Lina saat ini. Berapakah umur Lina dan Lili secara berurut?",
+        "options": [
+          "8 dan 6",
+          "10 dan 8",
+          "6 dan 4",
+          "4 dan 2",
+          "5 dan 3"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 54,
+        "text": "9600, 4800, 1600, 400, 80, ….",
+        "options": [
+          "70",
+          "60",
+          "50",
+          "40",
+          "30"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 55,
+        "text": "Sebagian toko pakaian buka pada pukul 11.00. Toko pakaian tidak buka pada pukul 11.00. Kesimpulannya adalah ...",
+        "options": [
+          "Toko pakaian buka pada malam hari",
+          "Toko pakaian buka pada sore hari",
+          "Toko pakaian buka pada pukul 10.00",
+          "Tidak bisa disimpulkan",
+          "Toko pakaian buka pada pukul 12.00"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 56,
+        "text": "Semua mahasiswa harus belajar untuk ujian. Sebagian mahasiswa tidak belajar. Kesimpulannya adalah ...",
+        "options": [
+          "Semua mahasiswa tidak belajar",
+          "Sebagian mahasiswa belajar",
+          "Sebagian mahasiswa tidak mengikuti ujian",
+          "Semua mahasiswa belajar",
+          "Sebagian mahasiswa tidak belajar untuk ujian"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 57,
+        "text": "0,5 × {(5½ × 16) – (90 : 1½)} =",
+        "options": [
+          "10,5",
+          "8",
+          "7",
+          "9",
+          "8,5"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 58,
+        "text": "Suatu persegi panjang mempunyai luas 500 cm2. Jika panjangnya bertambah 10% dan lebarnya berkurang 20% maka luasnya menjadi ....",
+        "options": [
+          "400 cm2",
+          "420 cm2",
+          "430 cm2",
+          "440 cm2",
+          "450 cm2"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 59,
+        "text": "2, 9, 4, 11, 6, 13, ...., ....",
+        "options": [
+          "8 dan 15",
+          "9 dan 16",
+          "10 dan 17",
+          "11 dan 18",
+          "12 dan 19"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 60,
+        "text": "4, 8, 16, 32, …, 128",
+        "options": [
+          "40",
+          "48",
+          "64",
+          "80",
+          "100"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 61,
+        "text": "Diketahui lamanya belajar mandiri siswa sebanding dengan nilai ujian. Jika siswa dengan nilai ujian 80 melakukan belajar mandiri 10 jam/hari, maka lamanya belajar mandiri siswa dengan nilai 50 adalah ….",
+        "options": [
+          "6.25 jam/hari",
+          "8 jam/hari",
+          "5 jam/hari",
+          "6 jam/hari",
+          "4 jam/hari"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 62,
+        "text": "BIBIR : BISUL",
+        "options": [
+          "Mata : Pupil",
+          "Telinga : Tuli",
+          "Hidung : Bersin",
+          "Kuku : Kepala",
+          "Dagu : Kecil"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 63,
+        "text": "Semua penderita penyakit lambung tidak boleh memakan makanan yang pedas. Tono mengidap penyakit lambung. Kesimpulannya adalah ...",
+        "options": [
+          "Tono boleh memakan makanan yang pedas",
+          "Tono tidak mengidap penyakit lambung",
+          "Tono suka memakan makanan yang tidak pedas",
+          "Tono tidak boleh memakan makanan yang manis",
+          "Tono tidak boleh memakan makanan yang pedas"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 64,
+        "text": "Diketahui 2ᵐ = 256 dan 3ⁿ = 9. Manakah pernyataan di bawah ini yang benar?",
+        "options": [
+          "m > n",
+          "m < n",
+          "m = n",
+          "m = 0",
+          "n = 0"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 65,
+        "text": "Semua pasangan yang menikah di KUA adalah pasangan sah. Pasangan yang sah, pasti memiliki buku nikah. Maman dan Indah mempunyai buku nikah. Kesimpulannya...",
+        "options": [
+          "Buku nikah Maman dan Indah palsu",
+          "Maman dan Indah tentu menikah di KUA",
+          "Maman dan Indah tidak menikah",
+          "Maman dan Indah belum tentu sah",
+          "Maman dan Indah pasangan yang tidak sah"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 66,
+        "text": "Anda melihat karyawan pasar berlaku tidak adil pada pembeli berkebutuhan khusus. Apa tindakan Anda?",
+        "options": [
+          "Melaporkan karyawan tersebut pada atasan pasar",
+          "Membiarkannya",
+          "Menegur dan mengingatkan karyawan tersebut agar tidak berlaku seperti itu",
+          "Cuek, karena bukan urusan Anda",
+          "Memberitahu pada pembeli kalau dia telah di bohongi oleh karyawan tersebut"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 67,
+        "text": "Seberapa penting bagi Anda untuk menyisihkan waktu secara rutin untuk perencanaan pekerjaan?",
+        "options": [
+          "Saat saya membutuhkan berpikir ulang maka saya akan mengatur kembali pekerjaan saya",
+          "Saya hampir tidak pernah menyisihkan waktu untuk merencanakan dan berpikir tentang pekerjaan",
+          "Saya selalu rutin mengevaluasi diri dan memikirkan kembali seminggu sekali",
+          "Terkadang saya memikirkannya saat waktu senggang",
+          "Saya selalu menjadwalkan rutin untuk evaluasi dan merencanakan ulang walaupun tidak rutin"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 68,
+        "text": "Bagaimana Anda menghadapi rencana yang kompleks dan rumit?",
+        "options": [
+          "Mencari bantuan dari rekan kerja",
+          "Mengabaikan dan mencari solusi lain",
+          "Mencoba memahami dengan bantuan literatur",
+          "Menunda hingga lebih memahami",
+          "Meminta saran dari atasan"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 69,
+        "text": "Apabila setelah melakukan investigasi, Anda menemukan bahwa staf Anda terlibat dalam tindak gratifikasi, bagaimana Anda melaporkan hasil investigasi tersebut?",
+        "options": [
+          "Menyerahkan hasil investigasi kepada atasan langsung tanpa memberikan detail",
+          "Melaporkan kepada pihak berwenang dan menyertakan semua bukti yang ada",
+          "Mengatur pertemuan dengan staf untuk mendiskusikan hasil investigasi",
+          "Membagikan hasil investigasi kepada seluruh anggota tim untuk transparansi",
+          "Menunggu instruksi dari atasan mengenai langkah selanjutnya"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 70,
+        "text": "Setelah seminggu penuh bekerja keras, Anda berencana untuk beristirahat di akhir pekan. Namun, ketua RT meminta Anda untuk ikut serta dalam kerja bakti membersihkan lapangan. Anda akan ...",
+        "options": [
+          "Mengiyakan tetapi tidak datang",
+          "Bergabung dengan warga untuk kerja bakti",
+          "Beristirahat dulu sebelum ikut kerja bakti",
+          "Meminta maaf kepada ketua RT dan menjelaskan kondisi Anda",
+          "Menyumbang makanan ringan untuk warga yang bekerja bakti"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 71,
+        "text": "Apa sikap Anda jika ide Anda tidak didengar dalam rapat?",
+        "options": [
+          "Kecewa dan meminta penjelasan saran pimpinan yang lebih baik",
+          "Menerima dengan tenang",
+          "Kecewa dan memilih diam",
+          "Tidak terima atas sikap pimpinan tersebut",
+          "Menerima dan meminta penjelasan atas ide yang lebih baik"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 72,
+        "text": "Jika Anda dipuji oleh atasan atas kerja keras Anda, Anda akan merasa...",
+        "options": [
+          "Saya merasa biasa saja",
+          "Saya merasa bersyukur dan puas atas hasil kerja saya",
+          "Saya merasa sulit menerima pujian tersebut karena menurut saya itu berlebihan",
+          "Saya merasa senang dan bangga atas pencapaian saya",
+          "Saya merasa sedikit tersipu karena hal tersebut"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 73,
+        "text": "Apa yang sebaiknya dilakukan jika Anda melihat karyawan pasar memperlakukan pembeli berkebutuhan khusus dengan tidak adil?",
+        "options": [
+          "Mengabaikan kejadian tersebut",
+          "Membiarkannya",
+          "Melaporkan kejadian tersebut pada atasan pasar",
+          "Menegur karyawan tersebut secara langsung",
+          "Cuek saja"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 74,
+        "text": "Apa tindakan Anda jika mengetahui bahwa teman Anda selalu mendapat bagian yang lebih kecil dalam setiap pembagian tugas?",
+        "options": [
+          "Melihat kondisi, jika kedua pihak puas walaupun bukan pada posisi yang adil, maka tidak masalah",
+          "Walaupun tidak adil, jika dalam proporsinya cukup dan dapat berjalan baik tidak masalah",
+          "Saya tidak pernah memaksa harus dibagi secara adil",
+          "Jelas, karena keadilan adalah utama dan mutlak",
+          "Tergantung apakah hal tersebut dapat ditoleransi atau tidak"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 75,
+        "text": "Bagaimana Anda memastikan bahwa pembagian proyek di tim Anda dilakukan secara adil?",
+        "options": [
+          "Melihat kondisi, jika kedua pihak puas walaupun bukan pada posisi yang adil, maka tidak masalah",
+          "Walaupun tidak adil, jika dalam proporsinya cukup dan dapat berjalan baik tidak masalah",
+          "Saya tidak pernah memaksa harus dibagi secara adil",
+          "Jelas, karena keadilan adalah utama dan mutlak",
+          "Tergantung apakah hal tersebut dapat ditoleransi atau tidak"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 76,
+        "text": "Jika bendahara Anda terbukti melakukan korupsi namun Anda tidak memiliki wewenang untuk melaporkannya, langkah apa yang seharusnya Anda ambil?",
+        "options": [
+          "Mencari cara untuk melaporkan masalah tersebut kepada pihak yang memiliki wewenang",
+          "Mengabaikan masalah tersebut jika tidak ada wewenang",
+          "Mengatur pertemuan dengan bendahara untuk membahas masalah secara pribadi",
+          "Meminta bantuan dari rekan kerja untuk menangani masalah",
+          "Membuat laporan internal dan menyarankan tindakan perbaikan"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 77,
+        "text": "Apa yang Anda lakukan jika rekan kerja sakit dan tugasnya diberikan kepada Anda?",
+        "options": [
+          "Tidak mengerjakan tugas tersebut karena bukan tugas Anda",
+          "Berusaha mengerjakan tugas tersebut",
+          "Belajar terlebih dahulu",
+          "Memprotes keputusan tersebut",
+          "Mengerjakan dengan terpaksa"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 78,
+        "text": "Apa yang Anda lakukan jika pekerjaan Anda tidak berjalan sesuai rencana?",
+        "options": [
+          "Saat saya membutuhkan berpikir ulang maka saya akan mengatur kembali pekerjaan saya",
+          "Saya hampir tidak pernah menyisihkan waktu untuk merencanakan dan berpikir tentang pekerjaan",
+          "Saya selalu rutin mengevaluasi diri dan memikirkan kembali seminggu sekali",
+          "Terkadang saya memikirkannya saat waktu senggang",
+          "Saya selalu menjadwalkan rutin untuk evaluasi dan merencanakan ulang walaupun tidak rutin"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 79,
+        "text": "Bagaimana reaksi Anda jika atasan Anda memberikan pujian secara pribadi atas hasil kerja Anda?",
+        "options": [
+          "Saya merasa biasa saja",
+          "Saya merasa bersyukur dan puas atas hasil kerja saya",
+          "Saya merasa sulit menerima pujian tersebut karena menurut saya itu berlebihan",
+          "Saya merasa senang dan bangga atas pencapaian saya",
+          "Saya merasa sedikit tersipu karena hal tersebut"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 80,
+        "text": "Perusahaan tempat Rani bekerja akan mengadakan acara besar, namun anggaran yang tersedia sangat terbatas. Untuk memastikan acara tetap berjalan lancar, Rani sebaiknya ...",
+        "options": [
+          "Mengurangi skala acara agar sesuai dengan anggaran",
+          "Mengajukan tambahan anggaran ke manajemen",
+          "Mencari sponsor untuk mendanai acara",
+          "Memotong biaya di bagian lain untuk menutupi kekurangan",
+          "Mencari tempat yang lebih murah untuk acara"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 81,
+        "text": "Jika Anda merasa tidak nyaman dengan metode kerja di unit baru, apa tindakan Anda?",
+        "options": [
+          "Bertanya kepada rekan kerja untuk memahami alasan metode tersebut",
+          "Mengabaikan metode dan tetap menggunakan cara Anda sendiri",
+          "Menunggu perubahan dari atasan",
+          "Mengeluh tanpa mencoba beradaptasi",
+          "Hanya mengikuti prosedur tanpa klarifikasi"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 82,
+        "text": "Di suatu pasar, Anda melihat ketidakadilan pada pembeli yang berkebutuhan khusus yang di lakukan oleh karyawan pasar, maka yang sebaiknya Anda lakukan adalah ...",
+        "options": [
+          "Melaporkan karyawan tersebut pada atasan pasar",
+          "Membiarkannya",
+          "Menegur dan mengingatkan karyawan tersebut agar tidak berlaku seperti itu",
+          "Cuek, karena bukan urusan Anda",
+          "Memberitahu pada pembeli kalau dia telah di bohongi oleh karyawan tersebut"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 83,
+        "text": "Anda akan pergi ke kantor, namun istri meminta Anda mengantar anak ke sekolah karena motor istri mengalami kebocoran ban. Apa yang Anda lakukan?",
+        "options": [
+          "Mengantar anak meski sedikit terlambat ke kantor",
+          "Memesan kendaraan online untuk anak",
+          "Memesan kendaraan online dan meminta istri mengantar anak",
+          "Meminjam kendaraan tetangga",
+          "Meminta istri dan anak naik busway"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 84,
+        "text": "Bagaimana Anda bereaksi jika melihat bahwa sistem pembagian di perusahaan Anda tidak adil?",
+        "options": [
+          "Melihat kondisi, jika kedua pihak puas walaupun bukan pada posisi yang adil, maka tidak masalah",
+          "Walaupun tidak adil, jika dalam proporsinya cukup dan dapat berjalan baik tidak masalah",
+          "Saya tidak pernah memaksa harus dibagi secara adil",
+          "Jelas, karena keadilan adalah utama dan mutlak",
+          "Tergantung apakah hal tersebut dapat ditoleransi atau tidak"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 85,
+        "text": "Bagaimana Anda mengatasi tumpukan kertas bekas di kantor?",
+        "options": [
+          "Menggunakannya untuk keperluan internal",
+          "Membakarnya di tempat aman",
+          "Menyerahkan ke pihak yang dapat mendaur ulang",
+          "Membuangnya ke tempat sampah biasa",
+          "Menyimpan untuk penggunaan mendatang"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 86,
+        "text": "Bagaimana Anda menanggapi kegagalan proyek yang disebabkan oleh kurangnya koordinasi tim?",
+        "options": [
+          "Mengadakan rapat evaluasi",
+          "Mengabaikan dan melanjutkan pekerjaan",
+          "Menyerahkan kepada atasan",
+          "Mengganti seluruh anggota tim",
+          "Mengurangi peran diri dalam tim"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 87,
+        "text": "Saat melihat karyawan pasar berlaku tidak adil pada pembeli berkebutuhan khusus, tindakan saya adalah ...",
+        "options": [
+          "Mengajak pembeli untuk melaporkan kejadian tersebut bersama-sama",
+          "Melaporkan kejadian tersebut pada atasan pasar",
+          "Menegur karyawan tersebut langsung",
+          "Mengabaikan kejadian tersebut",
+          "Memberi tahu pembeli tentang ketidakadilan tersebut"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 88,
+        "text": "Bagaimana Anda menyikapi rekan kerja yang sering tidak menghargai waktu?",
+        "options": [
+          "Santai dan berusaha sebaik mungkin",
+          "Tepat waktu adalah segalanya",
+          "Berusaha sebaik mungkin memanfaatkan waktu",
+          "Tepat waktu adalah cara menghargai orang lain, maka membuat perencanaan merupakan standar yang harus dilakukan",
+          "Harus dapat memanfaatkan waktu semaksimal mungkin secara otomatis"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 89,
+        "text": "Apa yang Anda lakukan jika solusi yang Anda pilih ternyata tidak efektif?",
+        "options": [
+          "Lakukan saja untuk menyelesaikannya",
+          "Meminta pendapat untuk mencari solusi",
+          "Melakukan sebisa mungkin sambil berpikir cara terbaik",
+          "Mempertimbangkan terlebih dahulu dengan memikirkannya",
+          "Menambah informasi, mempertimbangkan, kemudian eksekusi"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 90,
+        "text": "Saat sedang sibuk bekerja dan unit lain meminta bantuan untuk mencari file karyawan, apa yang akan Anda lakukan?",
+        "options": [
+          "Menunda-nunda mencari file tersebut.",
+          "Segera mencari file yang diminta.",
+          "Meminta bagian lain untuk mencari sendiri.",
+          "Melaporkan pada atasan Anda karena mengganggu aktivitas Anda.",
+          "Mencari secara bersama-sama file tersebut."
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 91,
+        "text": "Doni adalah seorang manajer proyek yang baru saja ditugaskan untuk menangani proyek yang mendekati tenggat waktu. Untuk memastikan proyek selesai tepat waktu, Doni sebaiknya ...",
+        "options": [
+          "Mengatur ulang prioritas tugas dan fokus pada tugas-tugas yang paling penting",
+          "Meminta perpanjangan tenggat waktu kepada klien",
+          "Menambah jam kerja karyawan",
+          "Merekrut pekerja sementara",
+          "Mengalihkan sebagian tugas ke tim lain"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 92,
+        "text": "Anda menyadari bahwa hampir sebagian besar rekan kerja Anda sering pulang lebih awal 15 menit dari waktu yang telah ditentukan. Apa yang akan Anda lakukan?",
+        "options": [
+          "Melaporkan pada atasan",
+          "Tetap pulang sesuai jadwal yang ditentukan",
+          "Ikut pulang lebih awal",
+          "Membiarkan mereka pulang karena pekerjaan Anda belum selesai",
+          "Segera menyelesaikan pekerjaan dan menyusul pulang"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 93,
+        "text": "Bagaimana reaksi Anda saat kolega membatalkan janji secara mendadak untuk keperluan penting?",
+        "options": [
+          "Jika saya sangat kecewa, saya tidak dapat menyembunyikannya",
+          "Saya akan menunjukan betapa kecewanya saya",
+          "Saya selalu dapat menyembunyikan rasa kecewa dan sedih karena tidak ingin orang lain tahu",
+          "Jika hal tersebut dapat ditoleransi dan dia dapat mengatakan dengan jelas maka saya akan biasa saja",
+          "Jika hal tersebut bukanlah hal yang cukup penting maka saya tidak akan menunjukkan sikap kecewa"
+        ],
+        "correctAnswer": 3
+      },
+      {
+        "id": 94,
+        "text": "Apa yang akan Anda lakukan jika harus mengerjakan tugas rekan kerja yang sakit?",
+        "options": [
+          "Tidak mengerjakan tugas tersebut karena bukan tugas Anda",
+          "Berusaha mengerjakan tugas tersebut",
+          "Belajar terlebih dahulu",
+          "Memprotes keputusan tersebut",
+          "Mengerjakan dengan terpaksa"
+        ],
+        "correctAnswer": 1
+      },
+      {
+        "id": 95,
+        "text": "Bagaimana Anda menangani kesalahan dalam proyek yang sudah terlanjur terjadi?",
+        "options": [
+          "Mengakui kesalahan dan mencari solusi",
+          "Menyalahkan anggota tim",
+          "Mengabaikan dan melanjutkan",
+          "Menghindari tanggung jawab",
+          "Mengganti seluruh anggota tim"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 96,
+        "text": "Bagaimana sikap Anda jika harus membayar uang pelicin untuk diterima bekerja?",
+        "options": [
+          "Melaporkan kejadian tersebut kepada pimpinan perusahaan",
+          "Menerima tawaran tersebut karena tidak ada yang mengetahuinya",
+          "Memberikan uang tersebut agar dapat diterima bekerja",
+          "Mempertimbangkannya",
+          "Menolak dan menegaskan bahwa Anda melamar dengan kemampuan yang Anda miliki"
+        ],
+        "correctAnswer": 4
+      },
+      {
+        "id": 97,
+        "text": "Anda menemukan seorang artis mempromosikan produk perawatan wajah ilegal di media sosial. Apa tindakan Anda?",
+        "options": [
+          "Mengirim pesan pribadi kepada artis tersebut dan mengingatkan bahwa perbuatannya bisa merugikan masyarakat",
+          "Memberi hasil analisis melalui sebuah unggahan dengan menandai akun si artis",
+          "Melaporkan kepada pihak berwajib",
+          "Diam saja karena malas berurusan dengan publik figure",
+          "Mengedukasi masyarakat bahwa gunakanlah krim yang legal dan memiliki logo SNI"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 98,
+        "text": "Bagaimana Anda memastikan bahwa setiap anggota tim berkontribusi maksimal?",
+        "options": [
+          "Sangat penting, walaupun tujuan tercapai lebih lama, tetapi kedekatan individu harus terbangun kuat",
+          "Tidak terlalu penting karena yang penting adalah target",
+          "Cukup penting karena itu merupakan dorongan mencapai tujuan tim",
+          "Biasa saja karena kita di dunia ini profesional tidak begitu perlu kedekatan",
+          "Penting tapi bukan yang utama"
+        ],
+        "correctAnswer": 0
+      },
+      {
+        "id": 99,
+        "text": "Bagaimana Anda mengutarakan pendapat yang berbeda dari rekan kerja?",
+        "options": [
+          "Dengan tegas dan nyata",
+          "Secara lugas dan umum",
+          "Dengan lugas dan detail",
+          "Nyata dan umum",
+          "Secara detail dan nyata"
+        ],
+        "correctAnswer": 2
+      },
+      {
+        "id": 100,
+        "text": "Saat sedang mengerjakan tugas dari rumah, teman datang dengan masalah yang membuatnya sangat tertekan dan ingin bercerita. Sikap Anda adalah...",
+        "options": [
+          "Mendengarkan sambil bekerja",
+          "Mendengarkan dengan penuh perhatian sebelum melanjutkan pekerjaan",
+          "Meminta maaf dan menyarankannya datang lain waktu",
+          "Memberi waktu sebentar untuk mendengarkan, lalu kembali bekerja",
+          "Menyarankan bercerita lewat pesan singkat"
+        ],
+        "correctAnswer": 1
       }
     ]
   }
