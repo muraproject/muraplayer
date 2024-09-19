@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/konva@9.3.15/konva.min.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Konva Fruit Ninja-like Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #knives {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .knife {
+            width: 60px;
+            height: 60px;
+            margin: 0 10px;
+            cursor: pointer;
+            border: 3px solid black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .knife.selected {
+            border-color: red;
+            transform: scale(1.1);
+        }
+        .knife-icon {
+            width: 40px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="knives">
+        <div class="knife" data-shape="rectangle">
+            <div class="knife-icon" style="width: 40px; height: 20px; background-color: blue;"></div>
+        </div>
+        <div class="knife" data-shape="triangle">
+            <div class="knife-icon" style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid green;"></div>
+        </div>
+        <div class="knife" data-shape="star">
+            <div class="knife-icon" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background-color: purple; width: 40px; height: 40px;"></div>
+        </div>
+    </div>
+    <script>
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        var stage = new Konva.Stage({
+            container: 'container',
+            width: width,
+            height: height,
+        });
+
+        var layer = new Konva.Layer();
+        stage.add(layer);
+
+        var selectedKnife = 'rectangle'; // Default selected knife
+
+        // Knife selection
+        var knives = document.querySelectorAll('.knife');
+        knives.forEach(knife => {
+            knife.addEventListener('click', () => {
+                selectedKnife = knife.dataset.shape;
+                knives.forEach(k => k.classList.remove('selected'));
+                knife.classList.add('selected');
+            });
+        });
+
+        // Array of fruit images
+        var fruitImages = ['strawberry.png', 'mango.png', 'kiwi.png', 'orange.png', 'watermelon.png'];
+        var openedFruitImages = {
+            'strawberry.png': 'openedstrawberry.webp',
+            'mango.png': 'openedmango.png',
+            'kiwi.png': 'openedkiwi.png',
+            'orange.png': 'openedorange.png',
+            'watermelon.png': 'openedwatermelon.png'
+        };
+
+        function createFruit() {
+            var randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
+            var imageObj = new Image();
+            imageObj.onload = function() {
+                var fruitGroup = new Konva.Group({
+                    x: Math.random() * stage.width(),
+                    y: stage.height(),
+                    name: randomFruit // Store the fruit name for later use
+                });
+
+                var fruit = new Konva.Image({
+                    image: imageObj,
+                    width: 100,
+                    height: 100,
+                    offsetX: 50,
+                    offsetY: 50,
+                });
+
+                fruitGroup.add(fruit);
+                layer.add(fruitGroup);
+
+                fruitGroup.on('click tap', function() {
+                    if (!this.isDragging()) {
+                        changeFruitShape(this);
+                    }
+                });
+
+                // Animation for movement and rotation
+                var anim = new Konva.Animation(function(frame) {
+                    var angleDiff = frame.timeDiff * 90 / 1000; // 90 degrees per second
+                    fruit.rotate(angleDiff);
+                    
+                    var newY = fruitGroup.y() - frame.timeDiff / 16; // Move upwards
+                    fruitGroup.y(newY);
+
+                    if (newY < -100) {
+                        anim.stop();
+                        fruitGroup.destroy();
+                        layer.draw();
+                    }
+                }, layer);
+
+                anim.start();
+            };
+            imageObj.src = randomFruit;
+        }
+
+        function changeFruitShape(fruitGroup) {
+            var x = fruitGroup.x();
+            var y = fruitGroup.y();
+            var fruitName = fruitGroup.name();
+            var openedFruitImage = openedFruitImages[fruitName];
+
+            var imageObj = new Image();
+            imageObj.onload = function() {
+                var newShape;
+                switch (selectedKnife) {
+                    case 'rectangle':
+                        newShape = new Konva.Group({
+                            x: x,
+                            y: y,
+                            draggable: true,
+                        });
+                        var rect = new Konva.Rect({
+                            width: 100,
+                            height: 100,
+                            fill: 'blue',
+                            stroke: 'black',
+                            strokeWidth: 2,
+                        });
+                        var image = new Konva.Image({
+                            image: imageObj,
+                            width: 90,
+                            height: 90,
+                            x: 5,
+                            y: 5,
+                        });
+                        newShape.add(rect);
+                        newShape.add(image);
+                        break;
+                    case 'triangle':
+                        newShape = new Konva.Group({
+                            x: x + 50,
+                            y: y + 50,
+                            draggable: true,
+                        });
+                        var triangle = new Konva.RegularPolygon({
+                            sides: 3,
+                            radius: 60,
+                            fill: 'green',
+                            stroke: 'black',
+                            strokeWidth: 2,
+                        });
+                        var image = new Konva.Image({
+                            image: imageObj,
+                            width: 80,
+                            height: 80,
+                            x: -40,
+                            y: -20,
+                        });
+                        newShape.add(triangle);
+                        newShape.add(image);
+                        break;
+                    case 'star':
+                        newShape = new Konva.Group({
+                            x: x + 50,
+                            y: y + 50,
+                            draggable: true,
+                        });
+                        var star = new Konva.Star({
+                            numPoints: 5,
+                            innerRadius: 30,
+                            outerRadius: 60,
+                            fill: 'purple',
+                            stroke: 'black',
+                            strokeWidth: 2,
+                        });
+                        var image = new Konva.Image({
+                            image: imageObj,
+                            width: 70,
+                            height: 70,
+                            x: -35,
+                            y: -35,
+                        });
+                        newShape.add(star);
+                        newShape.add(image);
+                        break;
+                }
+
+                newShape.on('mouseover', function () {
+                    document.body.style.cursor = 'pointer';
+                });
+                newShape.on('mouseout', function () {
+                    document.body.style.cursor = 'default';
+                });
+
+                layer.add(newShape);
+                fruitGroup.destroy();
+                layer.draw();
+            };
+            imageObj.src = openedFruitImage;
+        }
+
+        // Function to create fruits with random delay
+        function createFruitWithDelay() {
+            createFruit();
+            var delay = Math.random() * 1000 + 1000; // Random delay between 1 to 2 seconds
+            setTimeout(createFruitWithDelay, delay);
+        }
+
+        // Start creating fruits with delay
+        createFruitWithDelay();
+
+        // Select the default knife
+        document.querySelector('.knife[data-shape="rectangle"]').classList.add('selected');
+
+        // Resize function
+        function fitStageIntoParentContainer() {
+            var container = document.querySelector('#container');
+
+            // now we need to fit stage into parent container
+            var containerWidth = container.offsetWidth;
+            var containerHeight = container.offsetHeight;
+
+            // scale the stage to fit into the container
+            stage.width(containerWidth);
+            stage.height(containerHeight);
+        }
+
+        fitStageIntoParentContainer();
+        // adapt the stage on any window resize
+        window.addEventListener('resize', fitStageIntoParentContainer);
+    </script>
+</body>
+</html>
