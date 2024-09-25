@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Fruit Slicer Game</title>
+    <script src="https://unpkg.com/konva@9.3.15/konva.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #knives {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .knife {
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            border: 3px solid black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .knife.selected {
+            border-color: red;
+            transform: scale(1.1);
+        }
+        .knife-icon {
+            width: 40px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="knives">
+        <div class="knife" data-shape="bintang">
+            <div class="knife-icon" style="clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background-color: purple;"></div>
+        </div>
+        <div class="knife" data-shape="segitiga">
+            <div class="knife-icon" style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid green;"></div>
+        </div>
+        <div class="knife" data-shape="persegi">
+            <div class="knife-icon" style="width: 40px; height: 40px; background-color: blue;"></div>
+        </div>
+        <div class="knife" data-shape="persegipanjang">
+            <div class="knife-icon" style="width: 40px; height: 20px; background-color: red;"></div>
+        </div>
+        <div class="knife" data-shape="circle">
+            <div class="knife-icon" style="width: 40px; height: 40px; background-color: orange; border-radius: 50%;"></div>
+        </div>
+        <div class="knife" data-shape="segienam">
+            <div class="knife-icon" style="width: 40px; height: 40px; background-color: pink; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);"></div>
+        </div>
+        <div class="knife" data-shape="love">
+            <div class="knife-icon" style="width: 40px; height: 40px; background-color: red; clip-path: path('M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.43-6.381 12-11.147 12-15.808 0-6.792-8.875-8.306-12-2.944z');"></div>
+        </div>
+    </div>
+    <script>
+        var stage, backgroundLayer, gameLayer;
+        var backgroundImg, plateImage, fruitImages = [];
+        var selectedKnife = 'bintang';
+        var fruitNames = ['roti.png', 'semangka.png', 'timun.png', 'egg.png', 'kiwi.png'];
+
+        function initStage() {
+            stage = new Konva.Stage({
+                container: 'container',
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+            backgroundLayer = new Konva.Layer();
+            gameLayer = new Konva.Layer();
+            stage.add(backgroundLayer);
+            stage.add(gameLayer);
+        }
+
+        function loadImages() {
+            return new Promise((resolve, reject) => {
+                let loadedImages = 0;
+                const totalImages = fruitNames.length + 2;
+
+                function onLoad() {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        resolve();
+                    }
+                }
+
+                backgroundImg = new Image();
+                backgroundImg.onload = onLoad;
+                backgroundImg.src = 'asset/meja.png';
+
+                plateImage = new Image();
+                plateImage.onload = onLoad;
+                plateImage.src = 'asset/piring.png';
+
+                fruitNames.forEach((fruitName, index) => {
+                    const img = new Image();
+                    img.onload = onLoad;
+                    img.src = 'asset/' + fruitName;
+                    fruitImages[index] = img;
+                });
+            });
+        }
+
+        function createBackground() {
+            const background = new Konva.Image({
+                x: 0,
+                y: 0,
+                image: backgroundImg,
+                width: stage.width(),
+                height: stage.height(),
+            });
+            backgroundLayer.add(background);
+        }
+
+        function createPlate() {
+            const plateSize = Math.min(stage.width(), stage.height()) * 0.9;
+            const plate = new Konva.Image({
+                x: stage.width() / 2,
+                y: stage.height() / 2,
+                image: plateImage,
+                width: plateSize,
+                height: plateSize,
+                offsetX: plateSize / 2,
+                offsetY: plateSize / 2,
+            });
+            gameLayer.add(plate);
+        }
+
+        function createFruits() {
+            const numFruits = 15;
+            const cols = 3;
+            const rows = Math.ceil(numFruits / cols);
+            const fruitAreaWidth = stage.width() * 0.2;
+            const fruitAreaHeight = stage.height() * 0.8;
+            const fruitSize = Math.min(fruitAreaWidth / cols, fruitAreaHeight / rows) * 0.9;
+            const startX = 10;
+            const startY = (stage.height() - fruitAreaHeight) / 2;
+
+            for (let i = 0; i < numFruits; i++) {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + (col + 0.5) * (fruitAreaWidth / cols);
+                const y = startY + (row + 0.5) * (fruitAreaHeight / rows);
+
+                const randomFruitIndex = Math.floor(Math.random() * fruitImages.length);
+                const fruit = new Konva.Image({
+                    x: x,
+                    y: y,
+                    image: fruitImages[randomFruitIndex],
+                    width: fruitSize,
+                    height: fruitSize,
+                    offsetX: fruitSize / 2,
+                    offsetY: fruitSize / 2,
+                    name: fruitNames[randomFruitIndex],
+                    draggable: true
+                });
+
+                fruit.on('click tap', function() {
+                    if (!this.isDragging()) {
+                        changeFruitShape(this);
+                    }
+                });
+
+                fruit.on('dragstart', function() {
+                    this.moveToTop();
+                    gameLayer.draw();
+                });
+
+                gameLayer.add(fruit);
+            }
+        }
+
+        function changeFruitShape(fruit) {
+            const x = fruit.x();
+            const y = fruit.y();
+            const fruitName = fruit.name().split('.')[0];
+            const slicedFruitImage = 'asset/' + fruitName + '_' + selectedKnife + '.png';
+
+            const imageObj = new Image();
+            imageObj.onload = function() {
+                const slicedFruit = new Konva.Image({
+                    x: x,
+                    y: y,
+                    image: imageObj,
+                    width: fruit.width(),
+                    height: fruit.height(),
+                    offsetX: fruit.width() / 2,
+                    offsetY: fruit.height() / 2,
+                    draggable: true
+                });
+
+                slicedFruit.on('dragstart', function() {
+                    this.moveToTop();
+                    gameLayer.draw();
+                });
+
+                gameLayer.add(slicedFruit);
+                fruit.destroy();
+                gameLayer.draw();
+            };
+            imageObj.src = slicedFruitImage;
+
+            imageObj.onerror = function() {
+                console.error('Failed to load image:', slicedFruitImage);
+            };
+        }
+
+        function resizeStage() {
+            stage.width(window.innerWidth);
+            stage.height(window.innerHeight);
+
+            const background = backgroundLayer.findOne('Image');
+            if (background) {
+                background.width(stage.width());
+                background.height(stage.height());
+            }
+
+            const plate = gameLayer.findOne('Image');
+            if (plate) {
+                const plateSize = Math.min(stage.width(), stage.height()) * 0.9;
+                plate.width(plateSize);
+                plate.height(plateSize);
+                plate.offsetX(plateSize / 2);
+                plate.offsetY(plateSize / 2);
+                plate.x(stage.width() / 2);
+                plate.y(stage.height() / 2);
+            }
+
+            const fruits = gameLayer.find('Image').slice(1); // Exclude the plate
+            const numFruits = fruits.length;
+            const cols = 3;
+            const rows = Math.ceil(numFruits / cols);
+            const fruitAreaWidth = stage.width() * 0.2;
+            const fruitAreaHeight = stage.height() * 0.8;
+            const fruitSize = Math.min(fruitAreaWidth / cols, fruitAreaHeight / rows) * 0.9;
+            const startX = 10;
+            const startY = (stage.height() - fruitAreaHeight) / 2;
+
+            fruits.forEach((fruit, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + (col + 0.5) * (fruitAreaWidth / cols);
+                const y = startY + (row + 0.5) * (fruitAreaHeight / rows);
+                fruit.x(x);
+                fruit.y(y);
+                fruit.width(fruitSize);
+                fruit.height(fruitSize);
+                fruit.offsetX(fruitSize / 2);
+                fruit.offsetY(fruitSize / 2);
+            });
+
+            backgroundLayer.draw();
+            gameLayer.draw();
+        }
+
+        // Knife selection
+        const knives = document.querySelectorAll('.knife');
+        knives.forEach(knife => {
+            knife.addEventListener('click', () => {
+                selectedKnife = knife.dataset.shape;
+                knives.forEach(k => k.classList.remove('selected'));
+                knife.classList.add('selected');
+            });
+        });
+
+        // Initialize and start the game
+        initStage();
+        loadImages().then(() => {
+            createBackground();
+            createPlate();
+            createFruits();
+            resizeStage();
+            window.addEventListener('resize', resizeStage);
+        });
+
+        // Select the default knife
+        document.querySelector('.knife[data-shape="bintang"]').classList.add('selected');
+    </script>
+</body>
+</html>
