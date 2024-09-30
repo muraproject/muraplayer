@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penimbangan Barang</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        #totalBerat {
+            font-weight: bold;
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    
+    <table id="tabelTimbangan">
+        <thead>
+            <tr>
+                <th>Waktu</th>
+                <th>Nama</th>
+                <th>Barang</th>
+                <th>Berat(kg)</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="bodyTabel"></tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total Berat:</strong></td>
+                <td id="totalBerat" colspan="2">0</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <script>
+        function tambah(nama, barang, berat) {
+            const waktuSekarang = new Date().toLocaleString();
+            
+            const tabelBody = document.getElementById('bodyTabel');
+            const newRow = tabelBody.insertRow();
+            
+            newRow.insertCell(0).textContent = waktuSekarang;
+            newRow.insertCell(1).textContent = nama;
+            newRow.insertCell(2).textContent = barang;
+            newRow.insertCell(3).textContent = berat;
+
+            const deleteCell = newRow.insertCell(4);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Hapus';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = function() {
+                tabelBody.removeChild(newRow);
+                hitungTotal();
+            };
+            deleteCell.appendChild(deleteBtn);
+            
+            hitungTotal();
+        }
+
+        function hitungTotal() {
+            const tabelBody = document.getElementById('bodyTabel');
+            let total = 0;
+            
+            for (let i = 0; i < tabelBody.rows.length; i++) {
+                total += parseFloat(tabelBody.rows[i].cells[3].textContent);
+            }
+            
+            document.getElementById('totalBerat').textContent = total.toFixed(2);
+        }
+    </script>
+</body>
+</html>
