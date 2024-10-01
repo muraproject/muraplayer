@@ -12,6 +12,7 @@ var knife = require( "object/knife" );
 // var sence = require( "sence" );
 var background = require( "object/background" );
 var light = require( "object/light" );
+var finish = require("scripts/object/finish");
 
 var scoreNumber = 0;
 
@@ -23,6 +24,8 @@ var gameInterval;
 
 var snd;
 var boomSnd;
+
+console.log("game.js loaded");
 
 // fruit barbette
 var barbette = function(){
@@ -66,25 +69,31 @@ exports.applyScore = function( score ){
         volleyMultipleNumber += 50;
 };
 
-exports.sliceAt = function( fruit, angle ){
+exports.sliceAt = function(fruit, angle){
     var index;
 
-    if( state( "game-state" ).isnot( "playing" ) )
+    if(state("game-state").isnot("playing"))
         return;
 
-    if( fruit.type != "boom" ){
-        fruit.broken( angle );
-        if( index = fruits.indexOf( fruit ) )
-            fruits.splice( index, 1 );
-        score.number( ++ scoreNumber );
-        this.applyScore( scoreNumber );
+    if(fruit.type != "boom"){
+        fruit.broken(angle);
+        if(index = fruits.indexOf(fruit))
+            fruits.splice(index, 1);
+        score.number(++scoreNumber);
+        console.log("Current score:", scoreNumber);  // Menampilkan skor saat ini
+        this.applyScore(scoreNumber);
+        
+        if(scoreNumber >= 5){
+            console.log("Score has reached or exceeded 5!");  // Pesan ketika skor mencapai 5
+        }
     }else{
         boomSnd.play();
         this.pauseAllFruit();
         background.wobble();
-        light.start( fruit );
+        light.start(fruit);
     }
 };
+
 
 exports.pauseAllFruit = function(){
     gameInterval.stop();
@@ -92,6 +101,11 @@ exports.pauseAllFruit = function(){
     fruits.invoke( "pause" );
 };
 
+exports.finish = function(){
+    state("game-state").set("finish");
+    this.pauseAllFruit();
+    finish.show();
+};
 // message.addEventListener("fruit.fallOff", function( fruit ){
 // 	var index;
 // 	if( ( index = fruits.indexOf( fruit ) ) > -1 )

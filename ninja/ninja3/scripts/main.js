@@ -5,6 +5,8 @@ var Ucren = require( "lib/ucren" );
 var buzz = require( "lib/buzz" );
 var control = require( "control" );
 var csl = require( "object/console" );
+
+var finish = require("scripts/object/finish");
 var message = require( "message" );
 var state = require( "state" );
 
@@ -29,7 +31,7 @@ var log = function(){
 
 exports.start = function(){
 
-    [ timeline, sence, control ].invoke( "init" );
+    [ timeline, sence, control,finish ].invoke( "init" );
 
     log( "正在加载鼠标控制脚本" );
     log( "正在加载图像资源" );

@@ -236,31 +236,144 @@ define("scripts/game.js", function(exports){
 	        volleyNum ++,
 	        volleyMultipleNumber += 50;
 	};
+
+	function createConfetti() {
+		var confettiCount = 200;
+		var container = document.createElement('div');
+		container.style.position = 'fixed';
+		container.style.top = '0';
+		container.style.left = '0';
+		container.style.width = '100%';
+		container.style.height = '100%';
+		container.style.overflow = 'hidden';
+		container.style.pointerEvents = 'none';
+		document.body.appendChild(container);
 	
-	exports.sliceAt = function( fruit, angle ){
-	    var index;
+		for (var i = 0; i < confettiCount; i++) {
+			var confetti = document.createElement('div');
+			confetti.style.position = 'absolute';
+			confetti.style.width = '10px';
+			confetti.style.height = '10px';
+			confetti.style.backgroundColor = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)];
+			confetti.style.left = Math.random() * 100 + '%';
+			confetti.style.top = '-10px';
+			confetti.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+			container.appendChild(confetti);
 	
-	    if( state( "game-state" ).isnot( "playing" ) )
-	        return;
+			fallConfetti(confetti);
+		}
+	}
 	
-	    if( fruit.type != "boom" ){
-	        fruit.broken( angle );
-	        if( index = fruits.indexOf( fruit ) )
-	            fruits.splice( index, 1 );
-	        score.number( ++ scoreNumber );
-	        this.applyScore( scoreNumber );
-	    }else{
-	        boomSnd.play();
-	        this.pauseAllFruit();
-	        background.wobble();
-	        light.start( fruit );
-	    }
+	function fallConfetti(confetti) {
+		var startTime = Date.now();
+		var duration = 3000 + Math.random() * 2000;
+	
+		function update() {
+			var progress = (Date.now() - startTime) / duration;
+			if (progress < 1) {
+				var y = progress * window.innerHeight;
+				var x = parseFloat(confetti.style.left) + Math.sin(progress * 10) * 10;
+				confetti.style.transform = 'translate(' + x + 'px, ' + y + 'px) rotate(' + progress * 360 + 'deg)';
+				requestAnimationFrame(update);
+			} else {
+				confetti.remove();
+			}
+		}
+	
+		requestAnimationFrame(update);
+	}
+	
+	function showFinishOverlay() {
+		var overlay = document.createElement('div');
+		overlay.style.position = 'fixed';
+		overlay.style.top = '0';
+		overlay.style.left = '0';
+		overlay.style.width = '100%';
+		overlay.style.height = '100%';
+		overlay.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+		overlay.style.mixBlendMode = 'multiply';
+		overlay.style.transition = 'background-color 4s';
+		overlay.style.zIndex = '1000';
+		overlay.style.pointerEvents = 'none'; // Agar tidak menghalangi interaksi
+	
+		var messageContainer = document.createElement('div');
+		messageContainer.style.position = 'fixed';
+		messageContainer.style.top = '0';
+		messageContainer.style.left = '0';
+		messageContainer.style.width = '100%';
+		messageContainer.style.height = '100%';
+		messageContainer.style.display = 'flex';
+		messageContainer.style.justifyContent = 'center';
+		messageContainer.style.alignItems = 'center';
+		messageContainer.style.zIndex = '1001';
+		messageContainer.style.pointerEvents = 'none';
+	
+		var message = document.createElement('div');
+		message.textContent = 'Finish!';
+		message.style.color = '#fff';
+		message.style.fontSize = '48px';
+		message.style.opacity = '0';
+		message.style.transition = 'opacity 2s';
+		messageContainer.appendChild(message);
+	
+		document.body.appendChild(overlay);
+		document.body.appendChild(messageContainer);
+	
+		// Mulai efek menggelap
+		setTimeout(() => {
+			overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+		}, 100);
+	
+		// Tampilkan pesan "Finish!"
+		setTimeout(() => {
+			message.style.opacity = '1';
+		}, 2000);
+	
+		// Pindah ke halaman finish
+		setTimeout(() => {
+			window.location.href = 'finish.html';
+		}, 3000);
+	}
+
+	
+	
+	exports.sliceAt = function(fruit, angle){
+		var index;
+	
+		if(state("game-state").isnot("playing"))
+			return;
+	
+		if(fruit.type != "boom"){
+			fruit.broken(angle);
+			if(index = fruits.indexOf(fruit))
+				fruits.splice(index, 1);
+			score.number(++scoreNumber);
+			console.log("Current score:", scoreNumber);  // Menampilkan skor saat ini
+			this.applyScore(scoreNumber);
+			
+			if(scoreNumber >= 5){
+				console.log("Score has reached or exceeded 5!");  // Pesan ketika skor mencapai 5
+				// this.pauseAllFruit();
+				// background.wobble();
+				// light.start(fruit);
+				createConfetti();
+       		    showFinishOverlay();
+				
+				// window.location.href = 'finish.html';
+			}
+		}else{
+			boomSnd.play();
+			this.pauseAllFruit();
+			background.wobble();
+			light.start(fruit);
+		}
 	};
 	
 	exports.pauseAllFruit = function(){
-	    gameInterval.stop();
+	    // gameInterval.stop();
 	    knife.pause();
 	    fruits.invoke( "pause" );
+		fruit.stop();
 	};
 	
 	// message.addEventListener("fruit.fallOff", function( fruit ){
