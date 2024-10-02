@@ -134,7 +134,7 @@ def main():
     for file in os.listdir():
         print(f"- {file}")
 
-    video_file = "edit.mp4"
+    video_file = "video.mp4"
     if not os.path.exists(video_file):
         print(f"Error: The file '{video_file}' does not exist in the current directory.")
         return
@@ -187,7 +187,7 @@ def main():
                     print(f"Object {object_id} moved out. Total Out: {count_out}")
             object_positions[object_id] = new_position
 
-        cv2.line(frame, (counting_line, 0), (counting_line, 480), (0, 255, 0), 2)
+        cv2.line(frame, (counting_line, 0), (200, 480), (0, 255, 0), 2)
         cv2.putText(frame, f"In: {count_in}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         cv2.putText(frame, f"Out: {count_out}", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
