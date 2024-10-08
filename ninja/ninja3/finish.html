@@ -38,7 +38,7 @@
     <div class="finish-container">
         <h1>Round 1 Finish!</h1>
         <p>Congratulations, you've completed the game!</p>
-        <button onclick="location.reload()">Next Round</button>
+        <button onclick="myfunck()">Next Round</button>
     </div>
 
     <script>
@@ -53,6 +53,11 @@
                 document.querySelector('button').style.opacity = "1";
             }, 1500);
         };
+        function myfunck() {
+
+            location.replace("../piring4.html");
+            
+        }
     </script>
 </body>
 </html>
