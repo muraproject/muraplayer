@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengenalan Suara</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #007AFF;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+            background: #0056b3;
+        }
+
+        .mic-icon {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .wave-container {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .wave {
+            width: 3px;
+            height: 20px;
+            margin: 0 2px;
+            background: #007AFF;
+            animation: wave 1s ease-in-out infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes wave {
+            50% {
+                height: 40px;
+            }
+        }
+
+        .wave-container .wave:nth-child(2) { animation-delay: 0.1s; }
+        .wave-container .wave:nth-child(3) { animation-delay: 0.2s; }
+        .wave-container .wave:nth-child(4) { animation-delay: 0.3s; }
+        .wave-container .wave:nth-child(5) { animation-delay: 0.4s; }
+
+        .output-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            min-height: 100px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .header {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Pengenalan Suara</div>
+        <button class="mic-button" id="micButton">
+            <svg class="mic-icon" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+        </button>
+
+        <div class="wave-container hidden" id="waveContainer">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+
+        <div class="output-container" id="outputText">
+            Klik tombol mikrofon untuk mulai berbicara...
+        </div>
+        <div class="status" id="statusText"></div>
+    </div>
+
+    <script>
+        const micButton = document.getElementById('micButton');
+        const waveContainer = document.getElementById('waveContainer');
+        const outputText = document.getElementById('outputText');
+        const statusText = document.getElementById('statusText');
+
+        let recognition = null;
+        let isListening = false;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'id-ID'; // Mengatur bahasa ke Bahasa Indonesia
+
+            recognition.onstart = () => {
+                isListening = true;
+                waveContainer.classList.remove('hidden');
+                outputText.textContent = 'Mendengarkan...';
+                statusText.textContent = 'Silakan mulai berbicara';
+                micButton.style.background = '#dc3545';
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                waveContainer.classList.add('hidden');
+                micButton.style.background = '#007AFF';
+                statusText.textContent = 'Selesai mendengarkan';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
+                outputText.textContent = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Kesalahan pengenalan suara:', event.error);
+                outputText.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                statusText.textContent = 'Error: ' + event.error;
+                stopListening();
+            };
+        } else {
+            outputText.textContent = 'Maaf, browser Anda tidak mendukung pengenalan suara.';
+            statusText.textContent = 'Browser tidak kompatibel';
+            micButton.disabled = true;
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+                waveContainer.classList.add('hidden');
+                micButton.style.background = '#007AFF';
+            }
+        }
+
+        micButton.addEventListener('click', () => {
+            if (!recognition) return;
+
+            if (!isListening) {
+                recognition.start();
+            } else {
+                stopListening();
+            }
+        });
+    </script>
+</body>
+</html>
