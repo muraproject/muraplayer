@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJU Location Viewer - Kediri</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100vw;
+            z-index: 1;
+        }
+
+        /* Control Panel Styles */
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 300px;
+            max-width: 90vw;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .control-panel.active {
+            left: 0;
+        }
+
+        /* Toggle Button */
+        .toggle-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toggle-panel:hover {
+            background: #f5f5f5;
+        }
+
+        /* Location Button */
+        .location-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .location-button {
+            background-color: white;
+            color: #2196F3;
+            padding: 12px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .location-button:hover {
+            background-color: #f5f5f5;
+            transform: scale(1.05);
+        }
+
+        .coordinates-display {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: right;
+            max-width: 200px;
+        }
+
+        /* Panel Content Styles */
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .filter-container {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .legend {
+            margin-top: 15px;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0 2px;
+        }
+
+        .info-panel {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            max-width: 300px;
+            max-height: 60vh;
+            overflow-y: auto;
+            display: none;
+            z-index: 999;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .control-panel {
+                width: 85vw;
+            }
+
+            .info-panel {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toggle Button -->
+    <button class="toggle-panel" onclick="togglePanel()">
+        ☰ Menu
+    </button>
+
+    <!-- Control Panel -->
+    <div class="control-panel" id="controlPanel">
+        <div class="search-container">
+            <div class="search-input-container">
+                <input type="text" 
+                       id="search" 
+                       class="search-input" 
+                       placeholder="Masukkan ID Pelanggan..."
+                       autocomplete="off">
+                <div id="searchDropdown" class="dropdown"></div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <button onclick="searchLocation()" style="flex: 1;">Cari</button>
+                <button onclick="resetView()" style="flex: 1;" class="reset-button">Reset</button>
+            </div>
+        </div>
+        
+        <div class="filter-container">
+            <div style="margin-bottom: 10px;"><strong>Filter:</strong></div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showMeter" checked onchange="updateMarkers()">
+                <label for="showMeter">METER</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 8px;">
+                <input type="checkbox" id="showTagsasi" checked onchange="updateMarkers()">
+                <label for="showTagsasi">TAGSASI 375</label>
+            </div>
+        </div>
+
+        <div class="legend">
+            <strong>Keterangan:</strong>
+            <div class="legend-item">
+                <div class="legend-color meter"></div>
+                <span>METER</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color tagsasi"></div>
+                <span>TAGSASI 375</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Button -->
+    <div class="location-container">
+        <div id="coordinates" class="coordinates-display" style="display: none;"></div>
+        <button onclick="findMyLocation()" class="location-button" title="Temukan Lokasi Saya">
+            📍
+        </button>
+    </div>
+
+    <!-- Info Panel -->
+    <div id="info" class="info-panel"></div>
+
+    <!-- Map -->
+    <div id="map"></div>"></div>
+        </div>
+        <div class="search-container">
+            <div class="search-input-container">
+                <input type="text" 
+                       id="search" 
+                       class="search-input" 
+                       placeholder="Masukkan ID Pelanggan..."
+                       autocomplete="off">
+                <div id="searchDropdown" class="dropdown"></div>
+            </div>
+            <button onclick="searchLocation()" class="search-button">Cari</button>
+            <button onclick="resetView()" class="reset-button">Reset Tampilan</button>
+        </div>
+        <div class="filter-container">
+            <span><strong>Filter:</strong></span>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showMeter" checked onchange="updateMarkers()">
+                <label for="showMeter">METER</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showTagsasi" checked onchange="updateMarkers()">
+                <label for="showTagsasi">TAGSASI 375</label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="legend">
+        <strong>Keterangan:</strong>
+        <div class="legend-item">
+            <div class="legend-color meter"></div>
+            <span>METER</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color tagsasi"></div>
+            <span>TAGSASI 375</span>
+        </div>
+    </div>
+
+    <div id="info" class="info-panel"></div>
+    <div id="map"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <script>
+        let map;
+        let markers = {};
+        let markerLayer = L.layerGroup();
+        let currentHighlightedMarker = null;
+        let defaultMeterIcon, defaultTagsasiIcon, highlightedIcon, userLocationIcon;
+        let allData = [];
+        let userLocationMarker = null;
+
+        // Initialize the map
+        function initMap() {
+            // Koordinat pusat Kediri
+            map = L.map('map').setView([-7.677571, 112.082437], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            markerLayer.addTo(map);
+
+            // Initialize custom icons
+            defaultMeterIcon = L.divIcon({
+                html: `<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            defaultTagsasiIcon = L.divIcon({
+                html: `<div style="background-color: #2196F3; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            highlightedIcon = L.divIcon({
+                html: `<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            userLocationIcon = L.divIcon({
+                html: `<div style="background-color: #FF9800; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #FF9800;"></div>`,
+                className: 'custom-icon'
+            });
+        }
+
+        // Load CSV data
+        async function loadCSVData() {
+            try {
+                const response = await fetch('pju.csv');
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        clearMarkers();
+                        allData = results.data;
+                        addMarkersToMap(results.data);
+                    },
+                    error: function(error) {
+                        console.error('Error parsing CSV:', error);
+                        alert('Error loading data. Please check the console for details.');
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching CSV:', error);
+                alert('Error loading data file. Please make sure pju.csv exists in the same folder as this HTML file.');
+            }
+        }
+
+        // Clear existing markers
+        function clearMarkers() {
+            markerLayer.clearLayers();
+            markers = {};
+            currentHighlightedMarker = null;
+            document.getElementById('info').style.display = 'none';
+        }
+
+        // Add markers to the map
+        function addMarkersToMap(data) {
+            data.forEach(row => {
+                if (row.X && row.Y) {
+                    let lat = parseFloat(row.X);
+                    let lng = parseFloat(row.Y);
+                    
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const isMeter = row['TAGSASI / METER'] === 'METER';
+                    const icon = isMeter ? defaultMeterIcon : defaultTagsasiIcon;
+
+                    const marker = L.marker([lat, lng], {icon: icon});
+                    markers[row.IDPEL] = {
+                        marker: marker,
+                        data: row,
+                        type: isMeter ? 'METER' : 'TAGSASI'
+                    };
+
+                    const popupContent = `
+                        <strong>Nama:</strong> ${row.NAMA}<br>
+                        <strong>ID Pel:</strong> ${row.IDPEL}<br>
+                        <strong>Alamat:</strong> ${row.ALAMAT}<br>
+                        <strong>Tarif:</strong> ${row.TARIF}<br>
+                        <strong>Daya:</strong> ${row.DAYA}<br>
+                        <strong>Jenis:</strong> ${row['TAGSASI / METER']}<br>
+                        ${row['NOMOR METER'] ? `<strong>Nomor Meter:</strong> ${row['NOMOR METER']}<br>` : ''}
+                        <strong>Nama Gardu:</strong> ${row['NAMA GARDU']}<br>
+                        <strong>No. Tiang:</strong> ${row['NO. TIANG'] || '-'}
+                    `;
+                    marker.bindPopup(popupContent);
+                    markerLayer.addLayer(marker);
+                }
+            });
+
+            updateMarkers();
+        }
+
+        // Update markers based on filter
+        function updateMarkers() {
+            const showMeter = document.getElementById('showMeter').checked;
+            const showTagsasi = document.getElementById('showTagsasi').checked;
+
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                if ((isMeter && showMeter) || (!isMeter && showTagsasi)) {
+                    markerLayer.addLayer(markerData.marker);
+                } else {
+                    markerLayer.removeLayer(markerData.marker);
+                }
+            });
+        }
+
+        // Search function
+        function searchLocation() {
+            const searchId = document.getElementById('search').value.trim();
+            
+            // Reset all markers to default icons
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+            });
+
+            if (markers[searchId]) {
+                const markerData = markers[searchId];
+                
+                // Highlight the found marker
+                markerData.marker.setIcon(highlightedIcon);
+                currentHighlightedMarker = markerData;
+
+                // Center map on marker with zoom
+                map.setView(markerData.marker.getLatLng(), 18);
+                markerData.marker.openPopup();
+
+                // Show info panel
+                const infoPanel = document.getElementById('info');
+                infoPanel.innerHTML = `
+                    <h3>Informasi PJU</h3>
+                    <p><strong>Nama:</strong> ${markerData.data.NAMA}</p>
+                    <p><strong>ID Pel:</strong> ${markerData.data.IDPEL}</p>
+                    <p><strong>Alamat:</strong> ${markerData.data.ALAMAT}</p>
+                    <p><strong>Tarif:</strong> ${markerData.data.TARIF}</p>
+                    <p><strong>Daya:</strong> ${markerData.data.DAYA}</p>
+                    <p><strong>Jenis:</strong> ${markerData.data['TAGSASI / METER']}</p>
+                    ${markerData.data['NOMOR METER'] ? `<p><strong>Nomor Meter:</strong> ${markerData.data['NOMOR METER']}</p>` : ''}
+                    <p><strong>Nama Gardu:</strong> ${markerData.data['NAMA GARDU']}</p>
+                    <p><strong>No. Tiang:</strong> ${markerData.data['NO. TIANG'] || '-'}</p>
+                `;
+                infoPanel.style.display = 'block';
+            } else {
+                alert('ID Pelanggan tidak ditemukan');
+                document.getElementById('info').style.display = 'none';
+            }
+        }
+
+        // Reset view function
+        function resetView() {
+            if (Object.keys(markers).length > 0) {
+                // Reset all markers to default icons
+                Object.values(markers).forEach(markerData => {
+                    const isMeter = markerData.type === 'METER';
+                    markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+                });
+
+                // Reset view to Kediri
+                map.setView([-7.677571, 112.082437], 14);
+
+                // Hide info panel
+                document.getElementById('info').style.display = 'none';
+                
+                // Clear search input
+                document.getElementById('search').value = '';
+                document.getElementById('searchDropdown').style.display = 'none';
+            }
+        }
+
+        // Search autocomplete functionality
+        const searchInput = document.getElementById('search');
+        const searchDropdown = document.getElementById('searchDropdown');
+
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.toLowerCase();
+            
+            if (value.length < 1) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+
+            const matches = allData.filter(item => {
+                return item.IDPEL.toLowerCase().includes(value) ||
+                       item.NAMA.toLowerCase().includes(value) ||
+                       item.ALAMAT.toLowerCase().includes(value);
+            }).slice(0, 5); // Limit to 5 results
+
+            if (matches.length > 0) {
+                searchDropdown.innerHTML = matches.map(item => {
+                    const idpelHighlight = highlightMatch(item.IDPEL, value);
+                    const namaHighlight = highlightMatch(item.NAMA, value);
+                    
+                    return `
+                        <div class="dropdown-item" onclick="selectLocation('${item.IDPEL}')">
+                            <div>${namaHighlight}</div>
+                            <div class="dropdown-info">
+                                ID: ${idpelHighlight} | ${item.ALAMAT}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                searchDropdown.style.display = 'block';
+            } else {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // Select location from dropdown
+        function selectLocation(idpel) {
+            searchInput.value = idpel;
+            searchDropdown.style.display = 'none';
+            searchLocation();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        // Find user's location
+        function findMyLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung oleh browser Anda');
+                return;
+            }
+
+            const button = document.querySelector('.location-button');
+            button.disabled = true;
+            button.innerHTML = '<span class="location-icon">📍</span> Mencari lokasi...';
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Update coordinates display
+                    document.getElementById('coordinates').innerHTML = `
+                        Latitude: ${lat.toFixed(6)}<br>
+                        Longitude: ${lng.toFixed(6)}
+                    `;
+
+                    // Remove existing user location marker if it exists
+                    if (userLocationMarker) {
+                        markerLayer.removeLayer(userLocationMarker);
+                    }
+
+                    // Add new user location marker
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: userLocationIcon,
+                        zIndexOffset: 1000 // Make sure user marker is on top
+                    });
+                    userLocationMarker.bindPopup('<strong>Lokasi Anda</strong>').openPopup();
+                    markerLayer.addLayer(userLocationMarker);
+
+                    // Center map on user location
+                    map.setView([lat, lng], 16);
+
+                    button.disabled = false;
+                    button.innerHTML = '<span class="location-icon">📍</span> Lokasi Saya';
+                },
+                function(error) {
+                    let message = 'Terjadi kesalahan saat mencari lokasi: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += 'Izin lokasi ditolak.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += 'Informasi lokasi tidak tersedia.';
+                            break;
+                        case error.TIMEOUT:
+                            message += 'Waktu permintaan lokasi habis.';
+                            break;
+                        default:
+                            message += 'Terjadi kesalahan tidak dikenal.';
+                            break;
+                    }
+                    alert(message);
+                    button.disabled = false;
+                    button.innerHTML = '<span class="location-icon">📍</span> Lokasi Saya';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Initialize map and load data
+        initMap();
+        loadCSVData();
+    </script>
+</body>
+</html>
