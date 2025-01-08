@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJU Location Viewer - Kediri</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .control-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            font-size: 16px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .reset-button {
+            background-color: #f44336;
+        }
+        .reset-button:hover {
+            background-color: #da190b;
+        }
+        .info-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            display: none;
+        }
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-container">
+        <div class="search-container">
+            <input type="file" accept=".csv" id="fileInput">
+            <input type="text" id="search" placeholder="Masukkan ID Pelanggan...">
+            <button onclick="searchLocation()">Cari</button>
+            <button onclick="resetView()" class="reset-button">Reset Tampilan</button>
+        </div>
+        <div class="filter-container">
+            <span><strong>Filter:</strong></span>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showMeter" checked onchange="updateMarkers()">
+                <label for="showMeter">METER</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showTagsasi" checked onchange="updateMarkers()">
+                <label for="showTagsasi">TAGSASI 375</label>
+            </div>
+        </div>
+    </div>
+    <div class="legend">
+        <strong>Keterangan:</strong>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #4CAF50;"></div>
+            <span>METER</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #2196F3;"></div>
+            <span>TAGSASI 375</span>
+        </div>
+    </div>
+    <div id="info" class="info-panel"></div>
+    <div id="map"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <script>
+        let map;
+        let markers = {};
+        let markerLayer = L.layerGroup();
+        let currentHighlightedMarker = null;
+        let defaultMeterIcon, defaultTagsasiIcon, highlightedIcon;
+
+        // Initialize the map
+        function initMap() {
+            // Koordinat pusat Kediri
+            map = L.map('map').setView([-7.677571, 112.082437], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            markerLayer.addTo(map);
+
+            // Initialize custom icons
+            defaultMeterIcon = L.divIcon({
+                html: `<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            defaultTagsasiIcon = L.divIcon({
+                html: `<div style="background-color: #2196F3; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            highlightedIcon = L.divIcon({
+                html: `<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+        }
+
+        // Parse CSV data
+        document.getElementById('fileInput').addEventListener('change', function(evt) {
+            const file = evt.target.files[0];
+            Papa.parse(file, {
+                header: true,
+                complete: function(results) {
+                    clearMarkers();
+                    addMarkersToMap(results.data);
+                }
+            });
+        });
+
+        // Clear existing markers
+        function clearMarkers() {
+            markerLayer.clearLayers();
+            markers = {};
+            currentHighlightedMarker = null;
+            document.getElementById('info').style.display = 'none';
+        }
+
+        // Add markers to the map
+        function addMarkersToMap(data) {
+            data.forEach(row => {
+                if (row.X && row.Y) {
+                    let lat = parseFloat(row.X);
+                    let lng = parseFloat(row.Y);
+                    
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const isMeter = row['TAGSASI / METER'] === 'METER';
+                    const icon = isMeter ? defaultMeterIcon : defaultTagsasiIcon;
+
+                    const marker = L.marker([lat, lng], {icon: icon});
+                    markers[row.IDPEL] = {
+                        marker: marker,
+                        data: row,
+                        type: isMeter ? 'METER' : 'TAGSASI'
+                    };
+
+                    const popupContent = `
+                        <strong>Nama:</strong> ${row.NAMA}<br>
+                        <strong>ID Pel:</strong> ${row.IDPEL}<br>
+                        <strong>Alamat:</strong> ${row.ALAMAT}<br>
+                        <strong>Tarif:</strong> ${row.TARIF}<br>
+                        <strong>Daya:</strong> ${row.DAYA}<br>
+                        <strong>Jenis:</strong> ${row['TAGSASI / METER']}<br>
+                        ${row['NOMOR METER'] ? `<strong>Nomor Meter:</strong> ${row['NOMOR METER']}<br>` : ''}
+                        <strong>Nama Gardu:</strong> ${row['NAMA GARDU']}<br>
+                        <strong>No. Tiang:</strong> ${row['NO. TIANG'] || '-'}
+                    `;
+                    marker.bindPopup(popupContent);
+                    markerLayer.addLayer(marker);
+                }
+            });
+
+            updateMarkers();
+        }
+
+        // Update markers based on filter
+        function updateMarkers() {
+            const showMeter = document.getElementById('showMeter').checked;
+            const showTagsasi = document.getElementById('showTagsasi').checked;
+
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                if ((isMeter && showMeter) || (!isMeter && showTagsasi)) {
+                    markerLayer.addLayer(markerData.marker);
+                } else {
+                    markerLayer.removeLayer(markerData.marker);
+                }
+            });
+        }
+
+        // Search function
+        function searchLocation() {
+            const searchId = document.getElementById('search').value.trim();
+            
+            // Reset all markers to default icons
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+            });
+
+            if (markers[searchId]) {
+                const markerData = markers[searchId];
+                
+                // Highlight the found marker
+                markerData.marker.setIcon(highlightedIcon);
+                currentHighlightedMarker = markerData;
+
+                // Center map on marker with zoom
+                map.setView(markerData.marker.getLatLng(), 18);
+                markerData.marker.openPopup();
+
+                // Show info panel
+                const infoPanel = document.getElementById('info');
+                infoPanel.innerHTML = `
+                    <h3>Informasi PJU</h3>
+                    <p><strong>Nama:</strong> ${markerData.data.NAMA}</p>
+                    <p><strong>ID Pel:</strong> ${markerData.data.IDPEL}</p>
+                    <p><strong>Alamat:</strong> ${markerData.data.ALAMAT}</p>
+                    <p><strong>Tarif:</strong> ${markerData.data.TARIF}</p>
+                    <p><strong>Daya:</strong> ${markerData.data.DAYA}</p>
+                    <p><strong>Jenis:</strong> ${markerData.data['TAGSASI / METER']}</p>
+                    ${markerData.data['NOMOR METER'] ? `<p><strong>Nomor Meter:</strong> ${markerData.data['NOMOR METER']}</p>` : ''}
+                    <p><strong>Nama Gardu:</strong> ${markerData.data['NAMA GARDU']}</p>
+                    <p><strong>No. Tiang:</strong> ${markerData.data['NO. TIANG'] || '-'}</p>
+                `;
+                infoPanel.style.display = 'block';
+            } else {
+                alert('ID Pelanggan tidak ditemukan');
+                document.getElementById('info').style.display = 'none';
+            }
+        }
+
+        // Reset view function
+        function resetView() {
+            if (Object.keys(markers).length > 0) {
+                // Reset all markers to default icons
+                Object.values(markers).forEach(markerData => {
+                    const isMeter = markerData.type === 'METER';
+                    markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+                });
+
+                // Reset view to Kediri
+                map.setView([-7.677571, 112.082437], 14);
+
+                // Hide info panel
+                document.getElementById('info').style.display = 'none';
+                
+                // Clear search input
+                document.getElementById('search').value = '';
+            }
+        }
+
+        // Initialize map on load
+        initMap();
+    </script>
+</body>
+</html>
