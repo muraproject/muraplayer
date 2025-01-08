@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJU Location Viewer - Kediri</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100vw;
+            z-index: 1;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 300px;
+            max-width: 90vw;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .control-panel.active {
+            left: 0;
+        }
+
+        .toggle-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toggle-panel:hover {
+            background: #f5f5f5;
+        }
+
+        .location-container {
+            position: fixed;
+            top: 80px;
+            right: 10px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .location-button {
+            background-color: white;
+            color: #2196F3;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .location-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .coordinates-display {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: right;
+            max-width: 200px;
+            display: none;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .filter-container {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .legend {
+            margin-top: 15px;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0 2px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .reset-button {
+            background-color: #f44336;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .legend-color.meter {
+            background-color: #4CAF50;
+        }
+
+        .legend-color.tagsasi {
+            background-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-panel" onclick="togglePanel()">
+        ☰ Menu
+    </button>
+
+    <div class="control-panel" id="controlPanel">
+        <div class="search-container">
+            <div class="search-input-container">
+                <input type="text" 
+                       id="search" 
+                       class="search-input" 
+                       placeholder="Masukkan ID Pelanggan..."
+                       autocomplete="off">
+                <div id="searchDropdown" class="dropdown"></div>
+            </div>
+            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                <button onclick="searchLocation()" style="flex: 1;">Cari</button>
+                <button onclick="resetView()" style="flex: 1;" class="reset-button">Reset</button>
+            </div>
+        </div>
+        
+        <div class="filter-container">
+            <div style="margin-bottom: 10px;"><strong>Filter:</strong></div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="showMeter" checked onchange="updateMarkers()">
+                <label for="showMeter">METER</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 8px;">
+                <input type="checkbox" id="showTagsasi" checked onchange="updateMarkers()">
+                <label for="showTagsasi">TAGSASI 375</label>
+            </div>
+        </div>
+
+        <div class="legend">
+            <strong>Keterangan:</strong>
+            <div class="legend-item">
+                <div class="legend-color meter"></div>
+                <span>METER</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color tagsasi"></div>
+                <span>TAGSASI 375</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="location-container">
+        <div id="coordinates" class="coordinates-display"></div>
+        <button onclick="findMyLocation()" class="location-button" title="Temukan Lokasi Saya">
+            📍
+        </button>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+        let map;
+        let markers = {};
+        let markerLayer = L.layerGroup();
+        let currentHighlightedMarker = null;
+        let defaultMeterIcon, defaultTagsasiIcon, highlightedIcon, userLocationIcon;
+        let allData = [];
+        let userLocationMarker = null;
+
+        function togglePanel() {
+            const panel = document.getElementById('controlPanel');
+            panel.classList.toggle('active');
+        }
+
+        function initMap() {
+            map = L.map('map', {
+                zoomControl: false
+            }).setView([-7.677571, 112.082437], 14);
+
+            L.control.zoom({
+                position: 'topright'
+            }).addTo(map);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            markerLayer.addTo(map);
+
+            defaultMeterIcon = L.divIcon({
+                html: `<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            defaultTagsasiIcon = L.divIcon({
+                html: `<div style="background-color: #2196F3; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            highlightedIcon = L.divIcon({
+                html: `<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            userLocationIcon = L.divIcon({
+                html: `<div style="background-color: #FF9800; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #FF9800;"></div>`,
+                className: 'custom-icon'
+            });
+
+            map.on('click', function() {
+                const panel = document.getElementById('controlPanel');
+                if (panel.classList.contains('active')) {
+                    panel.classList.remove('active');
+                }
+            });
+        }
+
+        async function loadCSVData() {
+            try {
+                const response = await fetch('pju.csv');
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        clearMarkers();
+                        allData = results.data;
+                        addMarkersToMap(results.data);
+                    },
+                    error: function(error) {
+                        console.error('Error parsing CSV:', error);
+                        alert('Error loading data. Please check the console for details.');
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching CSV:', error);
+                alert('Error loading data file. Please make sure pju.csv exists in the same folder as this HTML file.');
+            }
+        }
+
+        function findMyLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung oleh browser Anda');
+                return;
+            }
+
+            const button = document.querySelector('.location-button');
+            const coordDisplay = document.getElementById('coordinates');
+            button.style.backgroundColor = '#ccc';
+            button.disabled = true;
+            coordDisplay.style.display = 'none';
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    coordDisplay.innerHTML = `Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`;
+                    coordDisplay.style.display = 'block';
+
+                    if (userLocationMarker) {
+                        markerLayer.removeLayer(userLocationMarker);
+                    }
+
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: userLocationIcon,
+                        zIndexOffset: 1000
+                    });
+                    userLocationMarker.bindPopup('<strong>Lokasi Anda</strong>').openPopup();
+                    markerLayer.addLayer(userLocationMarker);
+
+                    map.setView([lat, lng], 17);
+
+                    button.style.backgroundColor = 'white';
+                    button.disabled = false;
+                },
+                function(error) {
+                    let message = 'Terjadi kesalahan saat mencari lokasi: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += 'Izin lokasi ditolak.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += 'Informasi lokasi tidak tersedia.';
+                            break;
+                        case error.TIMEOUT:
+                            message += 'Waktu permintaan lokasi habis.';
+                            break;
+                        default:
+                            message += 'Terjadi kesalahan tidak dikenal.';
+                            break;
+                    }
+                    alert(message);
+                    button.style.backgroundColor = 'white';
+                    button.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function clearMarkers() {
+            markerLayer.clearLayers();
+            markers = {};
+            currentHighlightedMarker = null;
+        }
+
+        function addMarkersToMap(data) {
+            data.forEach(row => {
+                if (row.X && row.Y) {
+                    let lat = parseFloat(row.X);
+                    let lng = parseFloat(row.Y);
+                    
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const isMeter = row['TAGSASI / METER'] === 'METER';
+                    const icon = isMeter ? defaultMeterIcon : defaultTagsasiIcon;
+
+                    const marker = L.marker([lat, lng], {icon: icon});
+                    markers[row.IDPEL] = {
+                        marker: marker,
+                        data: row,
+                        type: isMeter ? 'METER' : 'TAGSASI'
+                    };
+
+                    const popupContent = `
+                        <strong>Nama:</strong> ${row.NAMA}<br>
+                        <strong>ID Pel:</strong> ${row.IDPEL}<br>
+                        <strong>Alamat:</strong> ${row.ALAMAT}<br>
+                        <strong>Tarif:</strong> ${row.TARIF}<br>
+                        <strong>Daya:</strong> ${row.DAYA}<br>
+                        <strong>Jenis:</strong> ${row['TAGSASI / METER']}<br>
+                        ${row['NOMOR METER'] ? `<strong>Nomor Meter:</strong> ${row['NOMOR METER']}<br>` : ''}
+                        <strong>Nama Gardu:</strong> ${row['NAMA GARDU']}<br>
+                        <strong>No. Tiang:</strong> ${row['NO. TIANG'] || '-'}
+                    `;
+                    marker.bindPopup(popupContent);
+                    markerLayer.addLayer(marker);
+                }
+            });
+            updateMarkers();
+        }
+
+        function updateMarkers() {
+            const showMeter = document.getElementById('showMeter').checked;
+            const showTagsasi = document.getElementById('showTagsasi').checked;
+
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                if ((isMeter && showMeter) || (!isMeter && showTagsasi)) {
+                    markerLayer.addLayer(markerData.marker);
+                } else {
+                    markerLayer.removeLayer(markerData.marker);
+                }
+            });
+        }
+
+        function searchLocation() {
+            const searchId = document.getElementById('search').value.trim();
+            
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+            });
+
+            if (markers[searchId]) {
+                const markerData = markers[searchId];
+                markerData.marker.setIcon(highlightedIcon);
+                currentHighlightedMarker = markerData;
+                map.setView(markerData.marker.getLatLng(), 18);
+                markerData.marker.openPopup();
+
+                if (window.innerWidth <= 768) {
+                    document.getElementById('controlPanel').classList.remove('active');
+                }
+            } else {
+                alert('ID Pelanggan tidak ditemukan');
+            }
+        }
+
+        function resetView() {
+            if (Object.keys(markers).length > 0) {
+                Object.values(markers).forEach(markerData => {
+                    const isMeter = markerData.type === 'METER';
+                    markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+                });
+                map.setView([-7.677571, 112.082437], 14);
+                document.getElementById('search').value = '';
+                document.getElementById('searchDropdown').style.display = 'none';
+            }
+        }
+
+        const searchInput = document.getElementById('search');
+        const searchDropdown = document.getElementById('searchDropdown');
+
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.toLowerCase();
+            
+            if (value.length < 1) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+
+            const matches = allData.filter(item => {
+                return item.IDPEL.toLowerCase().includes(value) ||
+                       item.NAMA.toLowerCase().includes(value) ||
+                       item.ALAMAT.toLowerCase().includes(value);
+            }).slice(0, 5);
+
+            if (matches.length > 0) {
+                searchDropdown.innerHTML = matches.map(item => {
+                    const idpelHighlight = highlightMatch(item.IDPEL, value);
+                    const namaHighlight = highlightMatch(item.NAMA, value);
+                    
+                    return `
+                        <div class="dropdown-item" onclick="selectLocation('${item.IDPEL}')">
+                            <div>${namaHighlight}</div>
+                            <div class="dropdown-info">
+                                ID: ${idpelHighlight} | ${item.ALAMAT}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                searchDropdown.style.display = 'block';
+            } else {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function selectLocation(idpel) {
+            searchInput.value = idpel;
+            searchDropdown.style.display = 'none';
+            searchLocation();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        initMap();
+        loadCSVData();
+    </script>
+</body>
+</html>
