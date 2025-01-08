@@ -326,6 +326,358 @@
         let allData = [];
         let userLocationMarker = null;
 
+        // Toggle control panel
+        function togglePanel() {
+            const panel = document.getElementById('controlPanel');
+            panel.classList.toggle('active');
+        }
+
+        // Initialize the map
+        function initMap() {
+            // Koordinat pusat Kediri
+            map = L.map('map', {
+                zoomControl: false // Disable default zoom control
+            }).setView([-7.677571, 112.082437], 14);
+
+            // Move zoom control to right
+            L.control.zoom({
+                position: 'bottomleft'
+            }).addTo(map);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            markerLayer.addTo(map);
+
+            // Initialize custom icons
+            defaultMeterIcon = L.divIcon({
+                html: `<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            defaultTagsasiIcon = L.divIcon({
+                html: `<div style="background-color: #2196F3; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            highlightedIcon = L.divIcon({
+                html: `<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>`,
+                className: 'custom-icon'
+            });
+
+            userLocationIcon = L.divIcon({
+                html: `<div style="background-color: #FF9800; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #FF9800;"></div>`,
+                className: 'custom-icon'
+            });
+
+            // Close panel when clicking on map
+            map.on('click', function() {
+                const panel = document.getElementById('controlPanel');
+                if (panel.classList.contains('active')) {
+                    panel.classList.remove('active');
+                }
+            });
+        }
+
+        // Load CSV data
+        async function loadCSVData() {
+            try {
+                const response = await fetch('pju.csv');
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        clearMarkers();
+                        allData = results.data;
+                        addMarkersToMap(results.data);
+                    },
+                    error: function(error) {
+                        console.error('Error parsing CSV:', error);
+                        alert('Error loading data. Please check the console for details.');
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching CSV:', error);
+                alert('Error loading data file. Please make sure pju.csv exists in the same folder as this HTML file.');
+            }
+        }
+
+        // Find user's location
+        function findMyLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung oleh browser Anda');
+                return;
+            }
+
+            const button = document.querySelector('.location-button');
+            const coordDisplay = document.getElementById('coordinates');
+            button.style.backgroundColor = '#ccc';
+            button.disabled = true;
+            coordDisplay.style.display = 'none';
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Update coordinates display
+                    coordDisplay.innerHTML = `
+                        Lat: ${lat.toFixed(6)}<br>
+                        Lng: ${lng.toFixed(6)}
+                    `;
+                    coordDisplay.style.display = 'block';
+
+                    // Remove existing user location marker if it exists
+                    if (userLocationMarker) {
+                        markerLayer.removeLayer(userLocationMarker);
+                    }
+
+                    // Add new user location marker
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: userLocationIcon,
+                        zIndexOffset: 1000
+                    });
+                    userLocationMarker.bindPopup('<strong>Lokasi Anda</strong>').openPopup();
+                    markerLayer.addLayer(userLocationMarker);
+
+                    // Center map on user location
+                    map.setView([lat, lng], 17);
+
+                    button.style.backgroundColor = 'white';
+                    button.disabled = false;
+                },
+                function(error) {
+                    let message = 'Terjadi kesalahan saat mencari lokasi: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += 'Izin lokasi ditolak.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += 'Informasi lokasi tidak tersedia.';
+                            break;
+                        case error.TIMEOUT:
+                            message += 'Waktu permintaan lokasi habis.';
+                            break;
+                        default:
+                            message += 'Terjadi kesalahan tidak dikenal.';
+                            break;
+                    }
+                    alert(message);
+                    button.style.backgroundColor = 'white';
+                    button.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Clear existing markers
+        function clearMarkers() {
+            markerLayer.clearLayers();
+            markers = {};
+            currentHighlightedMarker = null;
+            document.getElementById('info').style.display = 'none';
+        }
+
+        // Add markers to the map
+        function addMarkersToMap(data) {
+            data.forEach(row => {
+                if (row.X && row.Y) {
+                    let lat = parseFloat(row.X);
+                    let lng = parseFloat(row.Y);
+                    
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const isMeter = row['TAGSASI / METER'] === 'METER';
+                    const icon = isMeter ? defaultMeterIcon : defaultTagsasiIcon;
+
+                    const marker = L.marker([lat, lng], {icon: icon});
+                    markers[row.IDPEL] = {
+                        marker: marker,
+                        data: row,
+                        type: isMeter ? 'METER' : 'TAGSASI'
+                    };
+
+                    const popupContent = `
+                        <strong>Nama:</strong> ${row.NAMA}<br>
+                        <strong>ID Pel:</strong> ${row.IDPEL}<br>
+                        <strong>Alamat:</strong> ${row.ALAMAT}<br>
+                        <strong>Tarif:</strong> ${row.TARIF}<br>
+                        <strong>Daya:</strong> ${row.DAYA}<br>
+                        <strong>Jenis:</strong> ${row['TAGSASI / METER']}<br>
+                        ${row['NOMOR METER'] ? `<strong>Nomor Meter:</strong> ${row['NOMOR METER']}<br>` : ''}
+                        <strong>Nama Gardu:</strong> ${row['NAMA GARDU']}<br>
+                        <strong>No. Tiang:</strong> ${row['NO. TIANG'] || '-'}
+                    `;
+                    marker.bindPopup(popupContent);
+                    markerLayer.addLayer(marker);
+                }
+            });
+
+            updateMarkers();
+        }
+
+        // Update markers based on filter
+        function updateMarkers() {
+            const showMeter = document.getElementById('showMeter').checked;
+            const showTagsasi = document.getElementById('showTagsasi').checked;
+
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                if ((isMeter && showMeter) || (!isMeter && showTagsasi)) {
+                    markerLayer.addLayer(markerData.marker);
+                } else {
+                    markerLayer.removeLayer(markerData.marker);
+                }
+            });
+        }
+
+        // Search function
+        function searchLocation() {
+            const searchId = document.getElementById('search').value.trim();
+            
+            // Reset all markers to default icons
+            Object.values(markers).forEach(markerData => {
+                const isMeter = markerData.type === 'METER';
+                markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+            });
+
+            if (markers[searchId]) {
+                const markerData = markers[searchId];
+                
+                // Highlight the found marker
+                markerData.marker.setIcon(highlightedIcon);
+                currentHighlightedMarker = markerData;
+
+                // Center map on marker with zoom
+                map.setView(markerData.marker.getLatLng(), 18);
+                markerData.marker.openPopup();
+
+                // Show info panel
+                const infoPanel = document.getElementById('info');
+                infoPanel.innerHTML = `
+                    <h3>Informasi PJU</h3>
+                    <p><strong>Nama:</strong> ${markerData.data.NAMA}</p>
+                    <p><strong>ID Pel:</strong> ${markerData.data.IDPEL}</p>
+                    <p><strong>Alamat:</strong> ${markerData.data.ALAMAT}</p>
+                    <p><strong>Tarif:</strong> ${markerData.data.TARIF}</p>
+                    <p><strong>Daya:</strong> ${markerData.data.DAYA}</p>
+                    <p><strong>Jenis:</strong> ${markerData.data['TAGSASI / METER']}</p>
+                    ${markerData.data['NOMOR METER'] ? `<p><strong>Nomor Meter:</strong> ${markerData.data['NOMOR METER']}</p>` : ''}
+                    <p><strong>Nama Gardu:</strong> ${markerData.data['NAMA GARDU']}</p>
+                    <p><strong>No. Tiang:</strong> ${markerData.data['NO. TIANG'] || '-'}</p>
+                `;
+                infoPanel.style.display = 'block';
+
+                // Close control panel on mobile after search
+                if (window.innerWidth <= 768) {
+                    document.getElementById('controlPanel').classList.remove('active');
+                }
+            } else {
+                alert('ID Pelanggan tidak ditemukan');
+                document.getElementById('info').style.display = 'none';
+            }
+        }
+
+        // Reset view function
+        function resetView() {
+            if (Object.keys(markers).length > 0) {
+                // Reset all markers to default icons
+                Object.values(markers).forEach(markerData => {
+                    const isMeter = markerData.type === 'METER';
+                    markerData.marker.setIcon(isMeter ? defaultMeterIcon : defaultTagsasiIcon);
+                });
+
+                // Reset view to Kediri
+                map.setView([-7.677571, 112.082437], 14);
+
+                // Hide info panel
+                document.getElementById('info').style.display = 'none';
+                
+                // Clear search input
+                document.getElementById('search').value = '';
+                document.getElementById('searchDropdown').style.display = 'none';
+            }
+        }
+
+        // Search autocomplete functionality
+        const searchInput = document.getElementById('search');
+        const searchDropdown = document.getElementById('searchDropdown');
+
+        searchInput.addEventListener('input', function(e) {
+            const value = e.target.value.toLowerCase();
+            
+            if (value.length < 1) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+
+            const matches = allData.filter(item => {
+                return item.IDPEL.toLowerCase().includes(value) ||
+                       item.NAMA.toLowerCase().includes(value) ||
+                       item.ALAMAT.toLowerCase().includes(value);
+            }).slice(0, 5);
+
+            if (matches.length > 0) {
+                searchDropdown.innerHTML = matches.map(item => {
+                    const idpelHighlight = highlightMatch(item.IDPEL, value);
+                    const namaHighlight = highlightMatch(item.NAMA, value);
+                    
+                    return `
+                        <div class="dropdown-item" onclick="selectLocation('${item.IDPEL}')">
+                            <div>${namaHighlight}</div>
+                            <div class="dropdown-info">
+                                ID: ${idpelHighlight} | ${item.ALAMAT}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                searchDropdown.style.display = 'block';
+            } else {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // Select location from dropdown
+        function selectLocation(idpel) {
+            searchInput.value = idpel;
+            searchDropdown.style.display = 'none';
+            searchLocation();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        // Initialize map and load data
+        initMap();
+        loadCSVData();
+    </script>
+</body>
+</html>
+        let map;
+        let markers = {};
+        let markerLayer = L.layerGroup();
+        let currentHighlightedMarker = null;
+        let defaultMeterIcon, defaultTagsasiIcon, highlightedIcon, userLocationIcon;
+        let allData = [];
+        let userLocationMarker = null;
+
         // Initialize the map
         function initMap() {
             // Koordinat pusat Kediri
