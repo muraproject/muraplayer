@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulator Data Penerangan Jalan Umum</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <header class="bg-blue-700 text-white rounded-lg shadow-lg p-6 mb-8">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold">SIMULATOR DATA PENERANGAN JALAN UMUM</h1>
+          <p class="text-blue-100">DINAS PERHUBUNGAN KABUPATEN JOMBANG</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+          <p class="text-sm">Channel ID: <span class="font-mono">2692520</span></p>
+          <p id="status-indicator" class="text-sm">Status: <span class="bg-red-500 px-2 py-1 rounded text-white font-semibold">BERHENTI</span></p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Configuration Panel -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Konfigurasi Simulator</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-medium text-gray-700 mb-2">API ThingSpeak</h3>
+          <div class="mb-4">
+            <label for="api-key" class="block text-sm text-gray-600 mb-1">API Key Write</label>
+            <input type="text" id="api-key" value="JLMU0HFWADBC70WJ" class="w-full border border-gray-300 px-3 py-2 rounded-lg" placeholder="Masukkan API Key">
+          </div>
+          
+          <div class="mb-4">
+            <label for="channel-id" class="block text-sm text-gray-600 mb-1">Channel ID</label>
+            <input type="text" id="channel-id" value="2692520" class="w-full border border-gray-300 px-3 py-2 rounded-lg" placeholder="Masukkan Channel ID">
+          </div>
+          
+          <div class="mb-4">
+            <label for="interval" class="block text-sm text-gray-600 mb-1">Interval Pengiriman (detik)</label>
+            <input type="number" id="interval" value="15" min="5" max="300" class="w-full border border-gray-300 px-3 py-2 rounded-lg">
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="font-medium text-gray-700 mb-2">Parameter Simulasi</h3>
+          
+          <div class="mb-4">
+            <label for="voltage-base" class="block text-sm text-gray-600 mb-1">Tegangan Dasar (V)</label>
+            <input type="number" id="voltage-base" value="220" min="0" max="500" step="0.1" class="w-full border border-gray-300 px-3 py-2 rounded-lg">
+          </div>
+          
+          <div class="mb-4">
+            <label for="current-base" class="block text-sm text-gray-600 mb-1">Arus Dasar (A)</label>
+            <input type="number" id="current-base" value="5" min="0" max="20" step="0.01" class="w-full border border-gray-300 px-3 py-2 rounded-lg">
+          </div>
+          
+          <div class="mb-4">
+            <label for="location" class="block text-sm text-gray-600 mb-1">Lokasi (Latitude, Longitude)</label>
+            <div class="flex space-x-2">
+              <input type="number" id="latitude" value="-7.5456" step="0.000001" class="w-1/2 border border-gray-300 px-3 py-2 rounded-lg" placeholder="Latitude">
+              <input type="number" id="longitude" value="112.2245" step="0.000001" class="w-1/2 border border-gray-300 px-3 py-2 rounded-lg" placeholder="Longitude">
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="variation" class="block text-sm text-gray-600 mb-1">Variasi (± %)</label>
+            <input type="number" id="variation" value="5" min="0" max="20" class="w-full border border-gray-300 px-3 py-2 rounded-lg">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Control Buttons -->
+      <div class="flex space-x-4 mt-6">
+        <button id="start-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150">
+          Mulai Simulasi
+        </button>
+        <button id="stop-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150" disabled>
+          Berhenti
+        </button>
+      </div>
+    </div>
+
+    <!-- Log Panel -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-700">Log Aktivitas</h2>
+        <button id="clear-log" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition duration-150">
+          Bersihkan Log
+        </button>
+      </div>
+      
+      <div id="log-container" class="bg-gray-100 rounded-lg p-4 h-64 overflow-y-auto font-mono text-sm">
+        <div class="text-gray-600">Siap memulai simulasi...</div>
+      </div>
+    </div>
+
+    <!-- Data Preview -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Preview Data Terakhir</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Tegangan</h3>
+          <p id="preview-voltage" class="text-xl font-bold text-blue-600">-- V</p>
+        </div>
+        
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Arus</h3>
+          <p id="preview-current" class="text-xl font-bold text-green-600">-- A</p>
+        </div>
+        
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Daya</h3>
+          <p id="preview-power" class="text-xl font-bold text-purple-600">-- W</p>
+        </div>
+        
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Latitude</h3>
+          <p id="preview-latitude" class="text-xl font-bold text-gray-700">--</p>
+        </div>
+        
+        <div class="bg-gray-100 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Longitude</h3>
+          <p id="preview-longitude" class="text-xl font-bold text-gray-700">--</p>
+        </div>
+      </div>
+      
+      <div class="mt-4 text-sm text-gray-500">
+        <p>URL terakhir: <span id="last-url" class="font-mono text-xs break-all">--</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const apiKeyInput = document.getElementById('api-key');
+    const channelIdInput = document.getElementById('channel-id');
+    const intervalInput = document.getElementById('interval');
+    const voltageBaseInput = document.getElementById('voltage-base');
+    const currentBaseInput = document.getElementById('current-base');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const variationInput = document.getElementById('variation');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const clearLogBtn = document.getElementById('clear-log');
+    const logContainer = document.getElementById('log-container');
+    const statusIndicator = document.getElementById('status-indicator');
+    const previewVoltage = document.getElementById('preview-voltage');
+    const previewCurrent = document.getElementById('preview-current');
+    const previewPower = document.getElementById('preview-power');
+    const previewLatitude = document.getElementById('preview-latitude');
+    const previewLongitude = document.getElementById('preview-longitude');
+    const lastUrl = document.getElementById('last-url');
+
+    // Simulator variables
+    let simulationInterval;
+    let isRunning = false;
+    
+    // Start simulation
+    startBtn.addEventListener('click', () => {
+      if (isRunning) return;
+      
+      const apiKey = apiKeyInput.value.trim();
+      const channelId = channelIdInput.value.trim();
+      const interval = parseInt(intervalInput.value, 10) * 1000; // Convert to milliseconds
+      
+      if (!apiKey) {
+        addLogMessage('Error: API Key tidak boleh kosong', 'error');
+        return;
+      }
+      
+      if (!channelId) {
+        addLogMessage('Error: Channel ID tidak boleh kosong', 'error');
+        return;
+      }
+      
+      if (interval < 5000) {
+        addLogMessage('Error: Interval minimal 5 detik', 'error');
+        return;
+      }
+      
+      isRunning = true;
+      updateUIState(true);
+      addLogMessage(`Memulai simulasi dengan interval ${interval/1000} detik`);
+      
+      // Send initial data immediately
+      sendSimulatedData();
+      
+      // Set interval for subsequent data
+      simulationInterval = setInterval(sendSimulatedData, interval);
+    });
+    
+    // Stop simulation
+    stopBtn.addEventListener('click', () => {
+      if (!isRunning) return;
+      
+      clearInterval(simulationInterval);
+      isRunning = false;
+      updateUIState(false);
+      addLogMessage('Simulasi dihentikan');
+    });
+    
+    // Clear log
+    clearLogBtn.addEventListener('click', () => {
+      logContainer.innerHTML = '';
+      addLogMessage('Log dibersihkan');
+    });
+    
+    // Generate and send simulated data
+    function sendSimulatedData() {
+      const apiKey = apiKeyInput.value.trim();
+      const voltageBase = parseFloat(voltageBaseInput.value);
+      const currentBase = parseFloat(currentBaseInput.value);
+      const latitude = parseFloat(latitudeInput.value);
+      const longitude = parseFloat(longitudeInput.value);
+      const variation = parseFloat(variationInput.value) / 100; // Convert to decimal
+      
+      // Generate random variation
+      const randomFactor = 1 + (Math.random() * variation * 2 - variation);
+      
+      // Calculate values
+      const voltage = voltageBase * randomFactor;
+      const current = currentBase * randomFactor;
+      const power = voltage * current;
+      
+      // Add small random drift to location for realism
+      const latDrift = latitude + (Math.random() * 0.0002 - 0.0001);
+      const lngDrift = longitude + (Math.random() * 0.0002 - 0.0001);
+      
+      // Format for ThingSpeak
+      const formattedVoltage = voltage.toFixed(1);
+      const formattedCurrent = current.toFixed(2);
+      const formattedPower = power.toFixed(0);
+      const formattedLat = latDrift.toFixed(6);
+      const formattedLng = lngDrift.toFixed(6);
+      
+      // Update preview
+      previewVoltage.textContent = `${formattedVoltage} V`;
+      previewCurrent.textContent = `${formattedCurrent} A`;
+      previewPower.textContent = `${formattedPower} W`;
+      previewLatitude.textContent = formattedLat;
+      previewLongitude.textContent = formattedLng;
+      
+      // Construct URL
+      const url = `https://api.thingspeak.com/update?api_key=${apiKey}&field1=${formattedVoltage}&field2=${formattedCurrent}&field3=${formattedPower}&field4=${formattedLat}&field5=${formattedLng}`;
+      lastUrl.textContent = url;
+      
+      // Send data to ThingSpeak
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          if (data === '0') {
+            addLogMessage('Error: Gagal mengirim data (rate limit atau API key tidak valid)', 'error');
+          } else {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            addLogMessage(`${timestamp} - Data terkirim: V=${formattedVoltage}V, I=${formattedCurrent}A, P=${formattedPower}W (Entry: ${data})`);
+          }
+        })
+        .catch(error => {
+          addLogMessage(`Error: ${error.message}`, 'error');
+        });
+    }
+    
+    // Add message to log
+    function addLogMessage(message, type = 'info') {
+      const logEntry = document.createElement('div');
+      logEntry.className = type === 'error' ? 'text-red-600 mb-1' : 'text-gray-800 mb-1';
+      logEntry.textContent = message;
+      
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Update UI state based on running status
+    function updateUIState(running) {
+      if (running) {
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        // Update status indicator
+        statusIndicator.innerHTML = 'Status: <span class="bg-green-500 px-2 py-1 rounded text-white font-semibold">BERJALAN</span>';
+        
+        // Disable configuration inputs
+        apiKeyInput.disabled = true;
+        channelIdInput.disabled = true;
+        intervalInput.disabled = true;
+        voltageBaseInput.disabled = true;
+        currentBaseInput.disabled = true;
+        latitudeInput.disabled = true;
+        longitudeInput.disabled = true;
+        variationInput.disabled = true;
+      } else {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        // Update status indicator
+        statusIndicator.innerHTML = 'Status: <span class="bg-red-500 px-2 py-1 rounded text-white font-semibold">BERHENTI</span>';
+        
+        // Enable configuration inputs
+        apiKeyInput.disabled = false;
+        channelIdInput.disabled = false;
+        intervalInput.disabled = false;
+        voltageBaseInput.disabled = false;
+        currentBaseInput.disabled = false;
+        latitudeInput.disabled = false;
+        longitudeInput.disabled = false;
+        variationInput.disabled = false;
+      }
+    }
+      </script>
