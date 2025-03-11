@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Monitoring Penerangan Jalan Umum</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .chart-container {
+      position: relative;
+      height: 150px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto px-2 py-4 max-w-6xl">
+    <!-- Header -->
+    <div class="bg-blue-700 text-white rounded-lg shadow p-4 mb-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div>
+          <h1 class="text-xl font-bold">SISTEM MONITORING PENERANGAN JALAN UMUM</h1>
+          <p class="text-blue-100 text-sm">DINAS PERHUBUNGAN KABUPATEN JOMBANG</p>
+        </div>
+        <div class="mt-2 sm:mt-0 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div class="bg-blue-800 rounded px-2 py-1 text-center text-xs">
+            <div>Channel ID: <span class="font-mono">2692520</span></div>
+            <div id="last-update">--:--:--</div>
+          </div>
+          <button id="refresh-btn" class="bg-green-600 hover:bg-green-700 text-white text-sm px-2 py-1 rounded">
+            Refresh Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <!-- Metrics Cards -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold text-gray-700 mb-2">Tegangan</h2>
+        <div class="flex items-center justify-between">
+          <div id="voltage-value" class="text-2xl font-bold text-blue-600">-- V</div>
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        </div>
+        <div class="chart-container mt-4">
+          <canvas id="voltage-chart"></canvas>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold text-gray-700 mb-2">Arus</h2>
+        <div class="flex items-center justify-between">
+          <div id="current-value" class="text-2xl font-bold text-green-600">-- A</div>
+          <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+        </div>
+        <div class="chart-container mt-4">
+          <canvas id="current-chart"></canvas>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold text-gray-700 mb-2">Daya</h2>
+        <div class="flex items-center justify-between">
+          <div id="power-value" class="text-2xl font-bold text-purple-600">-- W</div>
+          <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </div>
+        </div>
+        <div class="chart-container mt-4">
+          <canvas id="power-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map and Table -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <!-- Map -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold text-gray-700 mb-2">Lokasi Perangkat</h2>
+        <div id="map" class="h-48 border border-gray-200 rounded"></div>
+        <div class="mt-2 text-sm text-gray-600 flex flex-wrap gap-4">
+          <div>Latitude: <span id="latitude-value" class="font-medium">--</span></div>
+          <div>Longitude: <span id="longitude-value" class="font-medium">--</span></div>
+        </div>
+      </div>
+      
+      <!-- Data Table -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="font-semibold text-gray-700 mb-2">Riwayat Data</h2>
+        <div class="overflow-y-auto max-h-56">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left">Waktu</th>
+                <th class="px-3 py-2 text-left">Tegangan</th>
+                <th class="px-3 py-2 text-left">Arus</th>
+                <th class="px-3 py-2 text-left">Daya</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body">
+              <tr>
+                <td class="px-3 py-2 text-center" colspan="4">Memuat data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- API Key -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <div class="flex items-center gap-2">
+        <label for="api-key" class="text-sm font-medium text-gray-700">ThingSpeak API Key:</label>
+        <input type="password" id="api-key" value="JLMU0HFWADBC70WJ" class="flex-grow border border-gray-300 px-2 py-1 text-sm rounded">
+        <button id="save-key" class="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ThingSpeak Configuration
+    const channelID = '2692520';
+    let apiKey = 'JLMU0HFWADBC70WJ';
+    const baseURL = 'https://api.thingspeak.com';
+    
+    // DOM Elements
+    const voltageValue = document.getElementById('voltage-value');
+    const currentValue = document.getElementById('current-value');
+    const powerValue = document.getElementById('power-value');
+    const lastUpdate = document.getElementById('last-update');
+    const latitudeValue = document.getElementById('latitude-value');
+    const longitudeValue = document.getElementById('longitude-value');
+    const dataTableBody = document.getElementById('data-table-body');
+    const apiKeyInput = document.getElementById('api-key');
+    const saveKeyButton = document.getElementById('save-key');
+    const refreshButton = document.getElementById('refresh-btn');
+    
+    // Map initialization
+    const map = L.map('map').setView([-7.5456, 112.2245], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    let marker;
+    
+    // Chart configurations
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { display: false } },
+        y: { beginAtZero: false, ticks: { maxTicksLimit: 5 } }
+      },
+      elements: { point: { radius: 0 } },
+      animation: false
+    };
+    
+    // Initialize charts
+    const voltageChart = new Chart(document.getElementById('voltage-chart'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: chartOptions
+    });
+    
+    const currentChart = new Chart(document.getElementById('current-chart'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: 'rgb(16, 185, 129)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: chartOptions
+    });
+    
+    const powerChart = new Chart(document.getElementById('power-chart'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: 'rgb(139, 92, 246)',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: chartOptions
+    });
+    
+    // Event listeners
+    saveKeyButton.addEventListener('click', function() {
+      apiKey = apiKeyInput.value.trim();
+      alert('API Key telah disimpan');
+      fetchData();
+    });
+    
+    refreshButton.addEventListener('click', fetchData);
+    
+    // Fetch data from ThingSpeak
+    async function fetchData() {
+      try {
+        refreshButton.disabled = true;
+        refreshButton.classList.add('opacity-50');
+        
+        const response = await fetch(`${baseURL}/channels/${channelID}/feeds.json?results=20`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        if (data.feeds && data.feeds.length > 0) {
+          updateDashboard(data.feeds);
+        } else {
+          console.warn('No data received from ThingSpeak');
+          dataTableBody.innerHTML = '<tr><td class="px-3 py-2 text-center text-red-500" colspan="4">Tidak ada data tersedia</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        dataTableBody.innerHTML = '<tr><td class="px-3 py-2 text-center text-red-500" colspan="4">Gagal memuat data</td></tr>';
+      } finally {
+        refreshButton.disabled = false;
+        refreshButton.classList.remove('opacity-50');
+      }
+    }
+    
+    // Update dashboard with fetched data
+    function updateDashboard(feeds) {
+      // Get latest feed
+      const latestFeed = feeds[feeds.length - 1];
+      
+      // Format timestamp
+      const timestamp = new Date(latestFeed.created_at);
+      lastUpdate.textContent = timestamp.toLocaleTimeString('id-ID');
+      
+      // Update metric values
+      const voltage = parseFloat(latestFeed.field1) || 0;
+      const current = parseFloat(latestFeed.field2) || 0;
+      const power = parseFloat(latestFeed.field3) || 0;
+      
+      voltageValue.textContent = `${voltage.toFixed(1)} V`;
+      currentValue.textContent = `${current.toFixed(2)} A`;
+      powerValue.textContent = `${power.toFixed(0)} W`;
+      
+      // Update location
+      const latitude = parseFloat(latestFeed.field4);
+      const longitude = parseFloat(latestFeed.field5);
+      
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        latitudeValue.textContent = latitude.toFixed(6);
+        longitudeValue.textContent = longitude.toFixed(6);
+        
+        // Update map marker
+        if (marker) {
+          marker.setLatLng([latitude, longitude]);
+        } else {
+          marker = L.marker([latitude, longitude]).addTo(map);
+        }
+        map.setView([latitude, longitude], 15);
+      }
+      
+      // Update charts
+      updateCharts(feeds);
+      
+      // Update data table
+      updateTable(feeds);
+    }
+    
+    // Update charts with historical data
+    function updateCharts(feeds) {
+      // Clear existing data
+      voltageChart.data.labels = [];
+      voltageChart.data.datasets[0].data = [];
+      
+      currentChart.data.labels = [];
+      currentChart.data.datasets[0].data = [];
+      
+      powerChart.data.labels = [];
+      powerChart.data.datasets[0].data = [];
+      
+      // Add data points (most recent 10)
+      feeds.slice(-10).forEach(feed => {
+        const time = new Date(feed.created_at);
+        const timeLabel = time.toLocaleTimeString('id-ID');
+        
+        voltageChart.data.labels.push(timeLabel);
+        voltageChart.data.datasets[0].data.push(parseFloat(feed.field1) || 0);
+        
+        currentChart.data.labels.push(timeLabel);
+        currentChart.data.datasets[0].data.push(parseFloat(feed.field2) || 0);
+        
+        powerChart.data.labels.push(timeLabel);
+        powerChart.data.datasets[0].data.push(parseFloat(feed.field3) || 0);
+      });
+      
+      // Update the charts
+      voltageChart.update();
+      currentChart.update();
+      powerChart.update();
+    }
+    
+    // Update data table
+    function updateTable(feeds) {
+      dataTableBody.innerHTML = '';
+      
+      // Display most recent 8 entries
+      feeds.slice(-8).reverse().forEach(feed => {
+        const row = document.createElement('tr');
+        row.className = 'border-t border-gray-100';
+        
+        const time = new Date(feed.created_at);
+        const formattedTime = time.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ', ' + time.toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'short'
+        });
+        
+        const cells = [
+          { text: formattedTime },
+          { text: `${parseFloat(feed.field1)?.toFixed(1) || '—'} V`, className: 'text-blue-600' },
+          { text: `${parseFloat(feed.field2)?.toFixed(2) || '—'} A`, className: 'text-green-600' },
+          { text: `${parseFloat(feed.field3)?.toFixed(0) || '—'} W`, className: 'text-purple-600' }
+        ];
+        
+        cells.forEach(cell => {
+          const td = document.createElement('td');
+          td.className = `px-3 py-2 ${cell.className || ''}`;
+          td.textContent = cell.text;
+          row.appendChild(td);
+        });
+        
+        dataTableBody.appendChild(row);
+      });
+    }
+    
+    // Initial data load
+    fetchData();
+    
+    // Auto refresh every 15 seconds
+    setInterval(fetchData, 15000);
+  </script>
+</body>
+</html>
