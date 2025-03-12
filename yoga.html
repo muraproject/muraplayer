@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPRES API Location Sender</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    
+    <style>
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">SIPRES API Location Sender</h1>
+        
+        <!-- Map Container -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Location Map</h2>
+            <div id="map" class="mb-2"></div>
+        </div>
+        
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Current Coordinates</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Longitude:</label>
+                    <input id="longitude" type="text" value="112.0122268" class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Latitude:</label>
+                    <input id="latitude" type="text" value="-7.827246" class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+            </div>
+            <button id="changeCoordinates" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                Change Coordinates (±20m)
+            </button>
+        </div>
+        
+        <button id="sendRequest" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 mb-4">
+            Send Request
+        </button>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-2">Response:</h3>
+            <div id="responseContainer" class="bg-gray-50 p-4 rounded-lg text-sm font-mono whitespace-pre-wrap break-words h-64 overflow-auto">
+                Response will appear here...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseLongitude = 112.0122268;
+        const baseLatitude = -7.827246;
+        const longitudeInput = document.getElementById('longitude');
+        const latitudeInput = document.getElementById('latitude');
+        
+        // Initialize map
+        const map = L.map('map').setView([baseLatitude, baseLongitude], 18);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add marker for current position
+        let marker = L.marker([baseLatitude, baseLongitude]).addTo(map);
+        
+        // Function to update map marker
+        function updateMapMarker(lat, lng) {
+            marker.setLatLng([lat, lng]);
+            map.panTo([lat, lng]);
+        }
+        
+        // Function to update coordinates on map click
+        map.on('click', function(e) {
+            const lat = e.latlng.lat.toFixed(7);
+            const lng = e.latlng.lng.toFixed(7);
+            
+            latitudeInput.value = lat;
+            longitudeInput.value = lng;
+            updateMapMarker(lat, lng);
+        });
+        
+        // Function to generate random coordinates within ~20m of the base coordinates
+        function generateRandomCoordinates() {
+            // Approximately 0.0002 degrees is about 20 meters
+            const randomOffset = () => (Math.random() - 0.5) * 0.0004;
+            
+            const newLongitude = (parseFloat(baseLongitude) + randomOffset()).toFixed(7);
+            const newLatitude = (parseFloat(baseLatitude) + randomOffset()).toFixed(7);
+            
+            longitudeInput.value = newLongitude;
+            latitudeInput.value = newLatitude;
+            
+            // Update map marker
+            updateMapMarker(newLatitude, newLongitude);
+        }
+        
+        // Initialize with random coordinates on page load
+        generateRandomCoordinates();
+        
+        // Update map when coordinates are manually changed
+        longitudeInput.addEventListener('change', function() {
+            updateMapMarker(latitudeInput.value, longitudeInput.value);
+        });
+        
+        latitudeInput.addEventListener('change', function() {
+            updateMapMarker(latitudeInput.value, longitudeInput.value);
+        });
+        
+        // Change coordinates button
+        document.getElementById('changeCoordinates').addEventListener('click', generateRandomCoordinates);
+        
+        // Send request button
+        document.getElementById('sendRequest').addEventListener('click', async function() {
+            const url = 'https://sipres.kedirikab.go.id/api/presensi/present';
+            const responseContainer = document.getElementById('responseContainer');
+            
+            try {
+                responseContainer.textContent = 'Sending request...';
+                
+                // Get current coordinate values
+                const longitude = longitudeInput.value;
+                const latitude = latitudeInput.value;
+                
+                // Create request options
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'User-Agent': 'Dart/2.19 (dart:io)',
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Accept-Encoding': 'gzip',
+                        'Authorization': 'Bearer 190361|dlVyRSfQXNbwM0JFyPEI6AxdgFq8WK6yEbrJ5OKu',
+                        'Host': 'sipres.kedirikab.go.id'
+                    },
+                    body: JSON.stringify({
+                        "longitude": longitude,
+                        "latitude": latitude,
+                        "jenis": "0"
+                    })
+                };
+                
+                // Send the request
+                const response = await fetch(url, options);
+                
+                // Get response as text
+                const responseText = await response.text();
+                
+                // Try to parse as JSON for pretty display
+                try {
+                    const jsonResponse = JSON.parse(responseText);
+                    responseContainer.textContent = `Status: ${response.status} ${response.statusText}\n\nResponse:\n${JSON.stringify(jsonResponse, null, 2)}`;
+                } catch {
+                    // If not valid JSON, display as text
+                    responseContainer.textContent = `Status: ${response.status} ${response.statusText}\n\nResponse:\n${responseText}`;
+                }
+                
+            } catch (error) {
+                // Display any errors
+                responseContainer.textContent = `Error: ${error.message}`;
+                console.error('Request failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>
