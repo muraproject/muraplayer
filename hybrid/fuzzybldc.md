@@ -43,5 +43,3 @@
 | **Defuzzifikasi**    | Reduksi: `5.0 * (1.0 - 0.5 * 0.5) = 3.75` | `throttleChange = +4`          |
 
 ---
-
-Dengan tabel ini, proses fuzzy logic dapat dipahami secara visual dan sistematis.
