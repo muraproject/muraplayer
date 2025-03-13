@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Simulasi Sistem Kontrol Kecepatan Boat di Arduino</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+            border-left: 4px solid #0066cc;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #0077dd;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #ffffcc;
+            border-left: 6px solid #ffeb3b;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .step {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #0066cc;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        .terminal {
+            background-color: #000;
+            color: #0f0;
+            padding: 15px;
+            font-family: monospace;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .input {
+            color: #fff;
+            font-weight: bold;
+        }
+        .output {
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Panduan Simulasi Sistem Kontrol Kecepatan Boat di Arduino</h1>
+    
+    <div class="note">
+        <p>Panduan ini berlaku untuk semua metode kontrol kecepatan boat yang telah diimplementasikan (Fuzzy Sugeno, Fuzzy PID, dan Neural Network).</p>
+    </div>
+    
+    <h2>Persiapan Hardware dan Software</h2>
+    
+    <h3>Peralatan yang Dibutuhkan:</h3>
+    <ul>
+        <li>Board Arduino (Arduino Uno, Mega, Nano, atau ESP32)</li>
+        <li>Kabel USB</li>
+        <li>Komputer dengan Arduino IDE terinstal</li>
+    </ul>
+    
+    <h3>Persiapan Software:</h3>
+    <ol>
+        <li>Download dan instal <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> versi terbaru</li>
+        <li>Salin kode program sistem kontrol kecepatan boat yang ingin disimulasikan (Fuzzy Sugeno, Fuzzy PID, atau Neural Network)</li>
+    </ol>
+    
+    <h2>Langkah-langkah Upload Program ke Arduino</h2>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Hubungkan Arduino ke Komputer</strong>
+        <p>Gunakan kabel USB untuk menghubungkan Arduino ke komputer. Pastikan komputer dapat mendeteksi Arduino.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Buka Arduino IDE</strong>
+        <p>Jalankan Arduino IDE yang telah terinstal pada komputer Anda.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Buat Project Baru</strong>
+        <p>Klik <code>File > New</code> untuk membuat project baru. Halaman editor akan terbuka dengan kode template dasar.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>Salin dan Tempel Kode Program</strong>
+        <p>Hapus kode template yang ada dan salin (copy-paste) kode program sistem kontrol kecepatan boat yang ingin Anda simulasikan.</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>Pilih Board Arduino</strong>
+        <p>Klik menu <code>Tools > Board</code> dan pilih jenis Arduino yang Anda gunakan, misalnya "Arduino Uno" atau "ESP32 Dev Module".</p>
+        <div class="image-container">
+            <img src="https://i.ibb.co/C8GgNyy/arduino-board-selection.png" alt="Pemilihan Board Arduino">
+        </div>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">6</span>
+        <strong>Pilih Port Serial</strong>
+        <p>Klik menu <code>Tools > Port</code> dan pilih port serial tempat Arduino terhubung, misalnya "COM3" (Windows) atau "/dev/ttyUSB0" (Linux/Mac).</p>
+        <div class="image-container">
+            <img src="https://i.ibb.co/cX1W4SC/arduino-port-selection.png" alt="Pemilihan Port Arduino">
+        </div>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">7</span>
+        <strong>Verifikasi (Compile) Program</strong>
+        <p>Klik tombol "Verify" (ikon centang) atau tekan <code>Ctrl+R</code> untuk memverifikasi kode. Tunggu hingga proses kompilasi selesai tanpa error.</p>
+        <div class="image-container">
+            <img src="https://i.ibb.co/GF8vZNm/arduino-verify.png" alt="Verifikasi Program Arduino">
+        </div>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">8</span>
+        <strong>Upload Program ke Arduino</strong>
+        <p>Klik tombol "Upload" (ikon panah ke kanan) atau tekan <code>Ctrl+U</code> untuk mengunggah program ke Arduino. Tunggu hingga proses upload selesai.</p>
+        <div class="image-container">
+            <img src="https://i.ibb.co/sVTnYLj/arduino-upload.png" alt="Upload Program ke Arduino">
+        </div>
+    </div>
+    
+    <div class="warning">
+        <p><strong>Catatan:</strong> Jika terjadi error saat upload, periksa kembali pemilihan board dan port, serta pastikan tidak ada aplikasi lain yang menggunakan port serial tersebut.</p>
+    </div>
+    
+    <h2>Simulasi dan Pengujian Program</h2>
+    
+    <h3>Menggunakan Serial Monitor</h3>
+    
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>Buka Serial Monitor</strong>
+        <p>Setelah berhasil upload program, buka Serial Monitor dengan mengklik ikon kaca pembesar di pojok kanan atas IDE atau tekan <code>Ctrl+Shift+M</code>.</p>
+        <div class="image-container">
+            <img src="https://i.ibb.co/3d1NmtZ/arduino-serial-monitor.png" alt="Serial Monitor Arduino">
+        </div>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>Atur Baud Rate</strong>
+        <p>Pastikan Baud Rate di Serial Monitor diatur ke <code>9600</code> (sesuai dengan <code>Serial.begin(9600)</code> di kode program).</p>
+    </div>
+    
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>Kirim Input Data</strong>
+        <p>Masukkan input dalam format <code>target,actual</code> ke kolom input di bagian atas Serial Monitor, kemudian klik "Send" atau tekan Enter.</p>
+        <p>Contoh input: <code>50,45</code> untuk target kecepatan 50 km/h dan kecepatan aktual 45 km/h.</p>
+    </div>
+    
+    <h3>Contoh Pengujian</h3>
+    
+    <p>Berikut adalah beberapa skenario pengujian yang bisa Anda coba:</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Input</th>
+                <th>Skenario</th>
+                <th>Ekspektasi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>50,45</code></td>
+                <td>Kecepatan terlalu lambat (Error positif kecil)</td>
+                <td>RPM akan meningkat</td>
+            </tr>
+            <tr>
+                <td><code>50,60</code></td>
+                <td>Kecepatan terlalu cepat (Error negatif sedang)</td>
+                <td>RPM akan menurun</td>
+            </tr>
+            <tr>
+                <td><code>50,50</code></td>
+                <td>Kecepatan tepat sasaran (Error nol)</td>
+                <td>RPM akan stabil</td>
+            </tr>
+            <tr>
+                <td><code>50,30</code></td>
+                <td>Kecepatan jauh lebih lambat (Error positif besar)</td>
+                <td>RPM akan meningkat signifikan</td>
+            </tr>
+            <tr>
+                <td><code>50,80</code></td>
+                <td>Kecepatan jauh lebih cepat (Error negatif besar)</td>
+                <td>RPM akan menurun signifikan</td>
+            </tr>
+            <tr>
+                <td><code>0,50</code></td>
+                <td>Ingin berhenti dari kecepatan tinggi</td>
+                <td>RPM akan turun drastis</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="terminal">
+        <p class="output">Sistem Kontrol Kecepatan Boat dengan Fuzzy Logic Sugeno Orde 1</p>
+        <p class="output">Format input: target,actual</p>
+        <p class="output">Contoh: 50,45</p>
+        <p class="output">--------------------------------------------------</p>
+        <p class="input">50,45</p>
+        <p class="output">Fuzzy Membership Values:</p>
+        <p class="output">NegLarge: 0.00 | NegSmall: 0.00 | Zero: 0.00 | PosSmall: 1.00 | PosLarge: 0.00</p>
+        <p class="output">Output Values Before Weighting:</p>
+        <p class="output">Engine - NL: 775.00 | NS: 900.00 | Z: 1500.00 | PS: 1725.00 | PL: 2150.00</p>
+        <p class="output">BLDC - NL: 100.00 | NS: 600.00 | Z: 2500.00 | PS: 3450.00 | PL: 3700.00</p>
+        <p class="output">Total Weight: 1.00</p>
+        <p class="output">Target: 50.00 km/h | Aktual: 45.00 km/h | Error: 5.00 km/h</p>
+        <p class="output">Output - Engine RPM: 1725.00 | BLDC RPM: 3450.00</p>
+        <p class="output">--------------------------------------------------</p>
+    </div>
+    
+    <h3>Penggunaan Mode Debug</h3>
+    
+    <p>Semua implementasi sistem kontrol memiliki mode debug untuk melihat nilai-nilai internal saat proses fuzzy atau neural network bekerja.</p>
+    
+    <ul>
+        <li>Untuk mengaktifkan/menonaktifkan mode debug, tambahkan kata <code>debug</code> setelah nilai aktual, contoh: <code>50,45,debug</code></li>
+        <li>Saat mode debug aktif, sistem akan menampilkan informasi lebih detail tentang proses perhitungan internal.</li>
+    </ul>
+    
+    <div class="note">
+        <p>Mode debug berguna untuk memahami cara kerja sistem dan membantu proses tuning parameter jika diperlukan.</p>
+    </div>
+    
+    <h2>Perbandingan Antar Metode</h2>
+    
+    <p>Anda dapat mencoba ketiga metode kontrol (Fuzzy Sugeno, Fuzzy PID, dan Neural Network) dengan skenario input yang sama untuk membandingkan keluaran dan karakteristik masing-masing metode.</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Metode</th>
+                <th>Karakteristik</th>
+                <th>Kelebihan</th>
+                <th>Kelemahan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Fuzzy Sugeno</td>
+                <td>Output langsung dari fungsi linear</td>
+                <td>
+                    <ul>
+                        <li>Implementasi sederhana</li>
+                        <li>Komputasi efisien</li>
+                        <li>Mudah dikonfigurasi</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Tidak memiliki "memori" (tidak mengakumulasi error)</li>
+                        <li>Tidak mengantisipasi perubahan (tidak menghitung derivative)</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>Fuzzy PID</td>
+                <td>Tuning parameter PID secara dinamis</td>
+                <td>
+                    <ul>
+                        <li>Memiliki komponen integral untuk mengatasi steady-state error</li>
+                        <li>Memiliki komponen derivative untuk mengantisipasi perubahan</li>
+                        <li>Lebih responsif terhadap dinamika sistem</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Implementasi lebih kompleks</li>
+                        <li>Membutuhkan tuning yang lebih teliti</li>
+                        <li>Komputasi lebih berat</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>Neural Network</td>
+                <td>Training dari data sampel</td>
+                <td>
+                    <ul>
+                        <li>Dapat "belajar" dari data historis</li>
+                        <li>Potensial untuk adaptasi yang lebih baik</li>
+                        <li>Dapat menangani hubungan non-linear yang kompleks</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Butuh data training yang representatif</li>
+                        <li>Proses training menambah kompleksitas</li>
+                        <li>Hasil lebih sulit diprediksi secara intuitif</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Troubleshooting</h2>
+    
+    <h3>Masalah Umum dan Solusi</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Masalah</th>
+                <th>Kemungkinan Penyebab</th>
+                <th>Solusi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Error saat kompilasi</td>
+                <td>Kesalahan sintaks pada kode</td>
+                <td>Periksa pesan error dan perbaiki sintaks kode</td>
+            </tr>
+            <tr>
+                <td>Error saat upload</td>
+                <td>Board atau port tidak cocok</td>
+                <td>Periksa pemilihan board dan port</td>
+            </tr>
+            <tr>
+                <td>Tidak ada respons di Serial Monitor</td>
+                <td>Baud rate tidak cocok</td>
+                <td>Sesuaikan baud rate di Serial Monitor dengan kode (9600)</td>
+            </tr>
+            <tr>
+                <td>Format input salah</td>
+                <td>Input tidak sesuai format</td>
+                <td>Gunakan format yang benar: <code>target,actual</code></td>
+            </tr>
+            <tr>
+                <td>Output tidak masuk akal</td>
+                <td>Error dalam perhitungan atau parameter</td>
+                <td>Aktifkan mode debug untuk melihat proses perhitungan detail</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>Pengembangan Lebih Lanjut</h2>
+    
+    <p>Setelah berhasil mensimulasikan program, Anda dapat melakukan pengembangan lebih lanjut:</p>
+    
+    <ol>
+        <li><strong>Tuning Parameter</strong> - Sesuaikan parameter fungsi keanggotaan atau nilai-nilai konstan untuk mengoptimalkan respons sistem</li>
+        <li><strong>Penambahan Input</strong> - Tambahkan input lain seperti akselerasi atau variabel lingkungan (angin, arus air)</li>
+        <li><strong>Integrasi dengan Sensor</strong> - Hubungkan dengan sensor kecepatan nyata seperti GPS atau flow meter</li>
+        <li><strong>Interfacing dengan Aktuator</strong> - Hubungkan output dengan aktuator seperti ESC (Electronic Speed Controller) untuk motor</li>
+        <li><strong>Visualisasi</strong> - Tambahkan fitur visualisasi respons sistem, misalnya dengan grafik atau dashboard</li>
+    </ol>
+    
+    <div class="note">
+        <p>Untuk implementasi pada boat sungguhan, disarankan untuk menambahkan fitur keamanan seperti batas waktu, limit switch, atau sistem fail-safe untuk mencegah kondisi yang tidak diinginkan.</p>
+    </div>
+    
+    <h2>Kesimpulan</h2>
+    
+    <p>Simulasi sistem kontrol kecepatan boat di Arduino merupakan langkah awal yang baik untuk memahami berbagai metode kontrol cerdas seperti Fuzzy Logic (Sugeno dan PID) serta Neural Network. Melalui simulasi, Anda dapat mempelajari karakteristik masing-masing metode dan memilih yang paling sesuai dengan kebutuhan aplikasi Anda.</p>
+    
+    <p>Penggunaan Arduino sebagai platform prototyping mempermudah eksperimen dan pengembangan lebih lanjut sebelum implementasi pada sistem nyata. Dengan demikian, risiko dan biaya pengembangan dapat diminimalkan sementara kualitas dan keandalan sistem tetap terjaga.</p>
+</body>
+</html>
