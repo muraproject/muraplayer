@@ -1,3 +1,63 @@
+# Fuzzy Logic untuk Kontrol RPM Motor BLDC
+
+Program ini menggunakan fuzzy logic untuk mengontrol RPM motor BLDC. Berikut adalah penjelasan langkah-langkahnya:
+
+---
+
+## 1. Fuzzifikasi
+Fuzzifikasi mengubah input numerik (error dan perubahan error) menjadi derajat keanggotaan (membership value) dalam kategori fuzzy.
+
+### Kategori untuk Error (`rpmError`)
+| **Error (absError)** | **Small Error** | **Medium Error** | **Big Error** |
+|-----------------------|-----------------|------------------|---------------|
+| `<= 100`             | 1.0             | 0.0              | 0.0           |
+| `100 < error <= 300` | Menurun (1.0 → 0.0) | Meningkat (0.0 → 1.0) | 0.0           |
+| `300 < error <= 700` | 0.0             | Menurun (1.0 → 0.0) | Meningkat (0.0 → 1.0) |
+| `> 700`              | 0.0             | 0.0              | 1.0           |
+
+### Kategori untuk Perubahan Error (`rpmErrorChange`)
+| **Perubahan Error (absErrorChange)** | **Small Delta** | **Medium Delta** | **Big Delta** |
+|--------------------------------------|-----------------|------------------|---------------|
+| `<= 50`                              | 1.0             | 0.0              | 0.0           |
+| `50 < errorChange <= 150`            | Menurun (1.0 → 0.0) | Meningkat (0.0 → 1.0) | 0.0           |
+| `150 < errorChange <= 300`           | 0.0             | Menurun (1.0 → 0.0) | Meningkat (0.0 → 1.0) |
+| `> 300`                              | 0.0             | 0.0              | 1.0           |
+
+---
+
+## 2. Aturan Fuzzy (Fuzzy Rules)
+Aturan fuzzy digunakan untuk menentukan perubahan throttle berdasarkan kombinasi error dan perubahan error.
+
+| **Rule** | **Error**       | **Perubahan Error** | **Output (Throttle Change)** |
+|----------|-----------------|---------------------|------------------------------|
+| 1        | Small           | Small               | Small Change (+1.0)          |
+| 2        | Medium          | Small               | Medium Change (+3.0)         |
+| 3        | Big             | -                   | Big Change (+5.0)            |
+| 4        | -               | Big                 | Reduce Change (×0.5)         |
+
+---
+
+## 3. Inferensi
+Inferensi menghitung kekuatan setiap aturan berdasarkan derajat keanggotaan input.
+
+### Contoh Kasus:
+- `error = 200` (kategori **medium** dengan `mediumError = 0.5`)
+- `errorChange = 50` (kategori **small** dengan `smallDelta = 1.0`)
+
+| **Rule** | **Error**       | **Perubahan Error** | **Strength (min)** | **Output**         |
+|----------|-----------------|---------------------|--------------------|--------------------|
+| 1        | Small (0.5)     | Small (1.0)         | `min(0.5, 1.0) = 0.5` | Small Change (+1.0) |
+| 2        | Medium (0.5)    | Small (1.0)         | `min(0.5, 1.0) = 0.5` | Medium Change (+3.0) |
+| 3        | Big (0.0)       | -                   | `0.0`              | Big Change (+5.0)  |
+| 4        | -               | Big (0.0)           | `0.0`              | Reduce Change (×0.5) |
+
+---
+
+## 4. Defuzzifikasi
+Defuzzifikasi mengubah output fuzzy menjadi nilai numerik menggunakan metode **weighted average**.
+
+### Perhitungan:
+- **Weighted Average**:
 - `rule1 = 0.5`, `smallChange = 1.0`
 - `rule2 = 0.5`, `mediumChange = 3.0`
 - `rule3 = 0.0`, `bigChange = 5.0`
