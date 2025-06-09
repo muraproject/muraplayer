@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPS Battery Monitoring System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lokijs/1.5.12/lokijs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Computer Monitor Styling */
+        .computer-monitor {
+            background: #2c3e50;
+            border-radius: 20px 20px 5px 5px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 8px solid #34495e;
+            position: relative;
+        }
+
+        .computer-monitor::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 45%;
+            width: 10%;
+            height: 25px;
+            background: #34495e;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .computer-monitor::before {
+            content: '';
+            position: absolute;
+            bottom: -35px;
+            left: 35%;
+            width: 30%;
+            height: 8px;
+            background: #2c3e50;
+            border-radius: 50px;
+        }
+
+        .screen {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 500px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            border: 2px solid #444;
+        }
+
+        .screen-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .screen-header h1 {
+            font-size: 2.2em;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
+        }
+
+        .screen-header p {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .status-card:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .status-card h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .status-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-label {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* Alarm Panel */
+        .alarm-panel {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            animation: alarmBlink 1s infinite;
+        }
+
+        .alarm-panel.active {
+            display: block;
+        }
+
+        @keyframes alarmBlink {
+            0%, 50% { border-color: #ff0000; }
+            51%, 100% { border-color: #ff6666; }
+        }
+
+        .alarm-title {
+            color: #ff0000;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .alarm-list {
+            list-style: none;
+            color: #ffcccc;
+        }
+
+        .alarm-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+            font-size: 0.95em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alarm-time {
+            font-size: 0.8em;
+            color: #ffaaaa;
+            margin-left: 10px;
+        }
+
+        /* Alarm History Panel */
+        .alarm-history-panel {
+            background: rgba(100, 100, 100, 0.1);
+            border: 1px solid #666;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-title {
+            color: #ccc;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .history-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .history-btn {
+            background: linear-gradient(45deg, #666, #444);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .history-btn:hover {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .history-filter {
+            margin-bottom: 15px;
+        }
+
+        .history-filter select {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .history-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item.critical {
+            border-left: 4px solid #ff0000;
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .history-item.warning {
+            border-left: 4px solid #ffaa00;
+            background: rgba(255, 170, 0, 0.05);
+        }
+
+        .history-message {
+            flex: 1;
+            color: #ccc;
+        }
+
+        .history-timestamp {
+            font-size: 0.8em;
+            color: #888;
+            margin-left: 15px;
+        }
+
+        .history-duration {
+            font-size: 0.75em;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        /* Limits Control Panel */
+        .limits-panel {
+            background: rgba(0, 100, 255, 0.1);
+            border: 1px solid #0066ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .limits-title {
+            color: #0066ff;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #0066ff;
+        }
+
+        .limits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .limit-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .limit-group h4 {
+            color: #ccc;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .limit-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .limit-row label {
+            min-width: 100px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .limit-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #00ff00;
+            font-size: 0.9em;
+        }
+
+        .limit-row input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+
+        .update-btn {
+            background: linear-gradient(45deg, #0066ff, #0044cc);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .update-btn:hover {
+            box-shadow: 0 0 10px rgba(0, 100, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Battery Control Section */
+        .battery-section {
+            margin-top: 40px;
+            padding: 30px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2em;
+            color: #00ff00;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .battery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .battery-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battery-card.normal {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .battery-card.warning {
+            border-color: #ffaa00;
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
+            animation: warningPulse 2s infinite;
+        }
+
+        .battery-card.critical {
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+            animation: criticalPulse 1s infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes criticalPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .battery-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .battery-id {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .battery-status {
+            font-size: 0.9em;
+            margin-top: 5px;
+            padding: 3px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .battery-status.normal {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+
+        .battery-status.warning {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+
+        .battery-status.critical {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+        }
+
+        .battery-controls {
+            display: grid;
+            gap: 15px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .control-label .icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+
+        .control-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-input input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #00ff00;
+            font-size: 1em;
+        }
+
+        .control-input input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+
+        .control-input .unit {
+            font-size: 0.9em;
+            color: #888;
+            min-width: 30px;
+        }
+
+        .current-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .auto-sim-controls {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .sim-btn {
+            background: linear-gradient(45deg, #ff6600, #cc4400);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sim-btn:hover {
+            box-shadow: 0 0 15px rgba(255, 100, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .sim-btn.active {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Computer Monitor Display -->
+        <div class="computer-monitor">
+            <div class="screen">
+                <div class="screen-header">
+                    <h1>🔋 UPS Battery Monitoring System</h1>
+                    <p>Real-time monitoring untuk setiap cell baterai UPS</p>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card">
+                        <h3>Total Batteries</h3>
+                        <div class="status-value" id="totalBatteries">10</div>
+                        <div class="status-label">Cell Active</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Normal Status</h3>
+                        <div class="status-value" id="normalCount">10</div>
+                        <div class="status-label">Batteries OK</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Warning Status</h3>
+                        <div class="status-value" id="warningCount">0</div>
+                        <div class="status-label">Need Attention</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Critical Status</h3>
+                        <div class="status-value" id="criticalCount">0</div>
+                        <div class="status-label">Immediate Action</div>
+                    </div>
+                </div>
+
+                <!-- Alarm Panel -->
+                <div class="alarm-panel" id="alarmPanel">
+                    <div class="alarm-title">🚨 ACTIVE ALARMS</div>
+                    <ul class="alarm-list" id="alarmList"></ul>
+                </div>
+
+                <!-- Alarm History Panel -->
+                <div class="alarm-history-panel" id="alarmHistoryPanel">
+                    <div class="history-header">
+                        <div class="history-title">📋 Alarm History</div>
+                        <div class="history-controls">
+                            <button class="history-btn" onclick="toggleHistoryPanel()">
+                                <span id="historyToggleText">Show History</span>
+                            </button>
+                            <button class="history-btn" onclick="clearAlarmHistory()">Clear History</button>
+                            <button class="history-btn" onclick="exportAlarmHistory()">Export</button>
+                        </div>
+                    </div>
+                    <div class="history-content" id="historyContent" style="display: none;">
+                        <div class="history-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Alarms:</span>
+                                <span class="stat-value" id="totalAlarmsCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Today:</span>
+                                <span class="stat-value" id="todayAlarmsCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Last 24h:</span>
+                                <span class="stat-value" id="last24hAlarmsCount">0</span>
+                            </div>
+                        </div>
+                        <div class="history-filter">
+                            <select id="historyFilter" onchange="filterAlarmHistory()">
+                                <option value="all">All Alarms</option>
+                                <option value="critical">Critical Only</option>
+                                <option value="warning">Warning Only</option>
+                                <option value="voltage">Voltage Issues</option>
+                                <option value="temperature">Temperature Issues</option>
+                                <option value="water">Water Level Issues</option>
+                            </select>
+                        </div>
+                        <div class="history-list" id="historyList"></div>
+                    </div>
+                </div>
+
+                <!-- Limits Control Panel -->
+                <div class="limits-panel">
+                    <div class="limits-title">⚙️ Parameter Limits Control</div>
+                    <div class="limits-grid">
+                        <div class="limit-group">
+                            <h4>Voltage Limits (V)</h4>
+                            <div class="limit-row">
+                                <label>Min Normal:</label>
+                                <input type="number" id="voltageMin" value="11.5" step="0.1">
+                            </div>
+                            <div class="limit-row">
+                                <label>Max Normal:</label>
+                                <input type="number" id="voltageMax" value="13.5" step="0.1">
+                            </div>
+                        </div>
+
+                        <div class="limit-group">
+                            <h4>Temperature Limits (°C)</h4>
+                            <div class="limit-row">
+                                <label>Warning:</label>
+                                <input type="number" id="tempWarning" value="40" step="1">
+                            </div>
+                            <div class="limit-row">
+                                <label>Critical:</label>
+                                <input type="number" id="tempCritical" value="50" step="1">
+                            </div>
+                        </div>
+
+                        <div class="limit-group">
+                            <h4>Water Level Limits (%)</h4>
+                            <div class="limit-row">
+                                <label>Warning:</label>
+                                <input type="number" id="waterWarning" value="30" step="1">
+                            </div>
+                            <div class="limit-row">
+                                <label>Critical:</label>
+                                <input type="number" id="waterCritical" value="15" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="update-btn" onclick="updateLimits()">Update Limits</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Battery Control Section -->
+        <div class="battery-section">
+            <h2 class="section-title">🔧 Battery Parameter Control</h2>
+            
+            <div class="battery-grid" id="batteryGrid">
+                <!-- Battery cards will be generated by JavaScript -->
+            </div>
+
+            <div class="auto-sim-controls">
+                <button class="sim-btn" onclick="simulateRandomData()">🎲 Simulate Random Data</button>
+                <button class="sim-btn" onclick="resetAllBatteries()">🔄 Reset All Batteries</button>
+                <button class="sim-btn" id="autoBtn" onclick="toggleAutoUpdate()">▶️ Start Auto Simulation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data baterai (10 batteries)
+        let batteryData = {
+            B1: { voltage: 12.5, temperature: 25, waterLevel: 85 },
+            B2: { voltage: 12.3, temperature: 27, waterLevel: 80 },
+            B3: { voltage: 12.7, temperature: 24, waterLevel: 90 },
+            B4: { voltage: 12.4, temperature: 26, waterLevel: 75 },
+            B5: { voltage: 12.6, temperature: 23, waterLevel: 88 },
+            B6: { voltage: 12.2, temperature: 28, waterLevel: 70 },
+            B7: { voltage: 12.8, temperature: 22, waterLevel: 92 },
+            B8: { voltage: 12.1, temperature: 30, waterLevel: 65 },
+            B9: { voltage: 12.9, temperature: 21, waterLevel: 95 },
+            B10: { voltage: 12.0, temperature: 32, waterLevel: 60 }
+        };
+
+        // Limits untuk alarm
+        let limits = {
+            voltageMin: 11.5,
+            voltageMax: 13.5,
+            tempWarning: 40,
+            tempCritical: 50,
+            waterWarning: 30,
+            waterCritical: 15
+        };
+
+        let autoUpdateInterval = null;
+        let alarmDatabase;
+        let activeAlarms = new Map(); // Track active alarms with start time
+
+        // Initialize LokiJS database with persistent storage
+        function initializeDatabase() {
+            alarmDatabase = new loki('alarmHistory.db', {
+                autoload: true,
+                autoloadCallback: loadHandler,
+                autosave: true,
+                autosaveInterval: 4000, // Save every 4 seconds
+                adapter: new LokiLocalStorageAdapter()
+            });
+
+            function loadHandler() {
+                let alarms = alarmDatabase.getCollection('alarms');
+                if (!alarms) {
+                    alarms = alarmDatabase.addCollection('alarms', {
+                        indices: ['timestamp', 'batteryId', 'type', 'severity']
+                    });
+                }
+                
+                // Convert stored date strings back to Date objects
+                alarms.data.forEach(alarm => {
+                    if (typeof alarm.timestamp === 'string') {
+                        alarm.timestamp = new Date(alarm.timestamp);
+                    }
+                    if (typeof alarm.startTime === 'string') {
+                        alarm.startTime = new Date(alarm.startTime);
+                    }
+                    if (typeof alarm.endTime === 'string' && alarm.endTime !== null) {
+                        alarm.endTime = new Date(alarm.endTime);
+                    }
+                });
+
+                alarmCollection = alarms;
+                updateAlarmHistoryStats();
+                console.log(`📊 Loaded ${alarms.count()} alarm records from storage`);
+            }
+
+            return alarmDatabase;
+        }
+
+        // LokiJS LocalStorage Adapter
+        function LokiLocalStorageAdapter() {
+            this.loadDatabase = function(dbname, callback) {
+                const serializedDb = localStorage.getItem(dbname);
+                if (serializedDb) {
+                    callback(serializedDb);
+                } else {
+                    callback(null);
+                }
+            };
+
+            this.saveDatabase = function(dbname, dbstring, callback) {
+                try {
+                    localStorage.setItem(dbname, dbstring);
+                    if (callback) callback();
+                } catch (err) {
+                    console.error('Error saving to localStorage:', err);
+                    if (callback) callback(err);
+                }
+            };
+        }
+
+        let alarmCollection;
+
+        function createBatteryGrid() {
+            const grid = document.getElementById('batteryGrid');
+            grid.innerHTML = '';
+
+            Object.keys(batteryData).forEach(cellId => {
+                const card = document.createElement('div');
+                card.className = 'battery-card normal';
+                card.id = `card-${cellId}`;
+                
+                card.innerHTML = `
+                    <div class="battery-header">
+                        <div class="battery-id">${cellId}</div>
+                        <div class="battery-status normal" id="status-${cellId}">NORMAL</div>
+                    </div>
+                    
+                    <div class="battery-controls">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="icon">⚡</span>
+                                Voltage: <span class="current-value" id="display-voltage-${cellId}">12.5</span>V
+                            </div>
+                            <div class="control-input">
+                                <input type="number" id="voltage-${cellId}" value="${batteryData[cellId].voltage}" 
+                                       step="0.1" min="0" max="20" onchange="updateBattery('${cellId}')">
+                                <span class="unit">V</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="icon">🌡️</span>
+                                Temperature: <span class="current-value" id="display-temp-${cellId}">25</span>°C
+                            </div>
+                            <div class="control-input">
+                                <input type="number" id="temp-${cellId}" value="${batteryData[cellId].temperature}" 
+                                       step="1" min="0" max="100" onchange="updateBattery('${cellId}')">
+                                <span class="unit">°C</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="control-label">
+                                <span class="icon">💧</span>
+                                Water Level: <span class="current-value" id="display-water-${cellId}">85</span>%
+                            </div>
+                            <div class="control-input">
+                                <input type="number" id="water-${cellId}" value="${batteryData[cellId].waterLevel}" 
+                                       step="1" min="0" max="100" onchange="updateBattery('${cellId}')">
+                                <span class="unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function getBatteryStatus(cellId) {
+            const data = batteryData[cellId];
+            const { voltage, temperature, waterLevel } = data;
+
+            if (voltage < limits.voltageMin || voltage > limits.voltageMax ||
+                temperature >= limits.tempCritical || waterLevel <= limits.waterCritical) {
+                return 'critical';
+            }
+
+            if (temperature >= limits.tempWarning || waterLevel <= limits.waterWarning) {
+                return 'warning';
+            }
+
+            return 'normal';
+        }
+
+        function updateBattery(cellId) {
+            // Update data from input values
+            batteryData[cellId].voltage = parseFloat(document.getElementById(`voltage-${cellId}`).value);
+            batteryData[cellId].temperature = parseFloat(document.getElementById(`temp-${cellId}`).value);
+            batteryData[cellId].waterLevel = parseFloat(document.getElementById(`water-${cellId}`).value);
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            let normalCount = 0;
+            let warningCount = 0;
+            let criticalCount = 0;
+            const currentAlarms = [];
+            const currentTime = new Date();
+
+            Object.keys(batteryData).forEach(cellId => {
+                const data = batteryData[cellId];
+                const status = getBatteryStatus(cellId);
+                const card = document.getElementById(`card-${cellId}`);
+                const statusElement = document.getElementById(`status-${cellId}`);
+
+                // Update display values
+                document.getElementById(`display-voltage-${cellId}`).textContent = data.voltage.toFixed(1);
+                document.getElementById(`display-temp-${cellId}`).textContent = Math.round(data.temperature);
+                document.getElementById(`display-water-${cellId}`).textContent = Math.round(data.waterLevel);
+
+                // Update input values
+                document.getElementById(`voltage-${cellId}`).value = data.voltage.toFixed(1);
+                document.getElementById(`temp-${cellId}`).value = Math.round(data.temperature);
+                document.getElementById(`water-${cellId}`).value = Math.round(data.waterLevel);
+
+                // Update card appearance
+                card.className = `battery-card ${status}`;
+                statusElement.className = `battery-status ${status}`;
+                statusElement.textContent = status.toUpperCase();
+
+                // Count statuses
+                if (status === 'normal') normalCount++;
+                else if (status === 'warning') warningCount++;
+                else if (status === 'critical') criticalCount++;
+
+                // Check and log alarms
+                checkAndLogAlarms(cellId, data, currentTime);
+
+                // Generate current alarms for display
+                if (data.voltage < limits.voltageMin || data.voltage > limits.voltageMax) {
+                    currentAlarms.push({
+                        message: `${cellId}: Voltage ${data.voltage.toFixed(1)}V out of range (${limits.voltageMin}V - ${limits.voltageMax}V)`,
+                        time: currentTime.toLocaleTimeString(),
+                        severity: 'critical'
+                    });
+                }
+                if (data.temperature >= limits.tempCritical) {
+                    currentAlarms.push({
+                        message: `${cellId}: CRITICAL temperature ${Math.round(data.temperature)}°C (limit: ${limits.tempCritical}°C)`,
+                        time: currentTime.toLocaleTimeString(),
+                        severity: 'critical'
+                    });
+                } else if (data.temperature >= limits.tempWarning) {
+                    currentAlarms.push({
+                        message: `${cellId}: High temperature ${Math.round(data.temperature)}°C (warning: ${limits.tempWarning}°C)`,
+                        time: currentTime.toLocaleTimeString(),
+                        severity: 'warning'
+                    });
+                }
+                if (data.waterLevel <= limits.waterCritical) {
+                    currentAlarms.push({
+                        message: `${cellId}: CRITICAL water level ${Math.round(data.waterLevel)}% (limit: ${limits.waterCritical}%)`,
+                        time: currentTime.toLocaleTimeString(),
+                        severity: 'critical'
+                    });
+                } else if (data.waterLevel <= limits.waterWarning) {
+                    currentAlarms.push({
+                        message: `${cellId}: Low water level ${Math.round(data.waterLevel)}% (warning: ${limits.waterWarning}%)`,
+                        time: currentTime.toLocaleTimeString(),
+                        severity: 'warning'
+                    });
+                }
+            });
+
+            // Update status cards
+            document.getElementById('normalCount').textContent = normalCount;
+            document.getElementById('warningCount').textContent = warningCount;
+            document.getElementById('criticalCount').textContent = criticalCount;
+
+            // Update alarm panel
+            const alarmPanel = document.getElementById('alarmPanel');
+            const alarmList = document.getElementById('alarmList');
+            
+            if (currentAlarms.length > 0) {
+                alarmPanel.classList.add('active');
+                alarmList.innerHTML = currentAlarms.map(alarm => 
+                    `<li>
+                        <span>⚠️ ${alarm.message}</span>
+                        <span class="alarm-time">${alarm.time}</span>
+                    </li>`
+                ).join('');
+            } else {
+                alarmPanel.classList.remove('active');
+            }
+
+            // Update alarm history statistics
+            updateAlarmHistoryStats();
+        }
+
+        function checkAndLogAlarms(batteryId, data, currentTime) {
+            const alarmKey = batteryId;
+            const hasAlarm = (
+                data.voltage < limits.voltageMin || data.voltage > limits.voltageMax ||
+                data.temperature >= limits.tempWarning || data.waterLevel <= limits.waterWarning
+            );
+
+            if (hasAlarm && !activeAlarms.has(alarmKey)) {
+                // New alarm started
+                activeAlarms.set(alarmKey, currentTime);
+                
+                // Log to database
+                const severity = (
+                    data.voltage < limits.voltageMin || data.voltage > limits.voltageMax ||
+                    data.temperature >= limits.tempCritical || data.waterLevel <= limits.waterCritical
+                ) ? 'critical' : 'warning';
+
+                let alarmType = 'general';
+                let message = '';
+
+                if (data.voltage < limits.voltageMin || data.voltage > limits.voltageMax) {
+                    alarmType = 'voltage';
+                    message = `Voltage ${data.voltage.toFixed(1)}V out of range`;
+                } else if (data.temperature >= limits.tempWarning) {
+                    alarmType = 'temperature';
+                    message = `Temperature ${Math.round(data.temperature)}°C ${severity === 'critical' ? 'critical' : 'high'}`;
+                } else if (data.waterLevel <= limits.waterWarning) {
+                    alarmType = 'water';
+                    message = `Water level ${Math.round(data.waterLevel)}% ${severity === 'critical' ? 'critical' : 'low'}`;
+                }
+
+                alarmCollection.insert({
+                    batteryId: batteryId,
+                    message: message,
+                    type: alarmType,
+                    severity: severity,
+                    timestamp: currentTime,
+                    startTime: currentTime,
+                    endTime: null,
+                    duration: null,
+                    voltage: data.voltage,
+                    temperature: data.temperature,
+                    waterLevel: data.waterLevel
+                });
+
+            } else if (!hasAlarm && activeAlarms.has(alarmKey)) {
+                // Alarm ended
+                const startTime = activeAlarms.get(alarmKey);
+                const duration = Math.round((currentTime - startTime) / 1000); // seconds
+                activeAlarms.delete(alarmKey);
+
+                // Update the last alarm record with end time and duration
+                const lastAlarm = alarmCollection.find({
+                    batteryId: batteryId,
+                    endTime: null
+                });
+
+                if (lastAlarm.length > 0) {
+                    const alarm = lastAlarm[lastAlarm.length - 1];
+                    alarm.endTime = currentTime;
+                    alarm.duration = duration;
+                    alarmCollection.update(alarm);
+                }
+            }
+        }
+
+        function updateAlarmHistoryStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+            const totalAlarms = alarmCollection.count();
+            const todayAlarms = alarmCollection.count({
+                timestamp: { $gte: today }
+            });
+            const last24hAlarms = alarmCollection.count({
+                timestamp: { $gte: last24h }
+            });
+
+            document.getElementById('totalAlarmsCount').textContent = totalAlarms;
+            document.getElementById('todayAlarmsCount').textContent = todayAlarms;
+            document.getElementById('last24hAlarmsCount').textContent = last24hAlarms;
+        }
+
+        function toggleHistoryPanel() {
+            const content = document.getElementById('historyContent');
+            const toggleText = document.getElementById('historyToggleText');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggleText.textContent = 'Hide History';
+                displayAlarmHistory();
+            } else {
+                content.style.display = 'none';
+                toggleText.textContent = 'Show History';
+            }
+        }
+
+        function displayAlarmHistory(filter = 'all') {
+            let query = {};
+            
+            switch (filter) {
+                case 'critical':
+                    query.severity = 'critical';
+                    break;
+                case 'warning':
+                    query.severity = 'warning';
+                    break;
+                case 'voltage':
+                    query.type = 'voltage';
+                    break;
+                case 'temperature':
+                    query.type = 'temperature';
+                    break;
+                case 'water':
+                    query.type = 'water';
+                    break;
+            }
+
+            const alarms = alarmCollection.find(query).sort((a, b) => b.timestamp - a.timestamp);
+            const historyList = document.getElementById('historyList');
+
+            if (alarms.length === 0) {
+                historyList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No alarms found</div>';
+                return;
+            }
+
+            historyList.innerHTML = alarms.map(alarm => {
+                const duration = alarm.duration ? formatDuration(alarm.duration) : 'Ongoing';
+                
+                // Ensure timestamp is a Date object
+                let timestamp;
+                if (alarm.timestamp instanceof Date) {
+                    timestamp = alarm.timestamp;
+                } else if (typeof alarm.timestamp === 'number') {
+                    timestamp = new Date(alarm.timestamp);
+                } else if (typeof alarm.timestamp === 'string') {
+                    timestamp = new Date(alarm.timestamp);
+                } else {
+                    timestamp = new Date();
+                }
+                
+                const timeString = timestamp.toLocaleString('id-ID', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                return `
+                    <div class="history-item ${alarm.severity}">
+                        <div class="history-message">
+                            <strong>${alarm.batteryId}</strong>: ${alarm.message}
+                            <div class="history-duration">Duration: ${duration}</div>
+                        </div>
+                        <div class="history-timestamp">${timeString}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatDuration(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+        }
+
+        function filterAlarmHistory() {
+            const filter = document.getElementById('historyFilter').value;
+            displayAlarmHistory(filter);
+        }
+
+        function clearAlarmHistory() {
+            if (confirm('Are you sure you want to clear all alarm history? This cannot be undone.')) {
+                alarmCollection.clear();
+                activeAlarms.clear();
+                
+                // Force save to localStorage
+                alarmDatabase.saveDatabase();
+                
+                displayAlarmHistory();
+                updateAlarmHistoryStats();
+                
+                console.log('🗑️ Alarm history cleared');
+            }
+        }
+
+        function exportAlarmHistory() {
+            const alarms = alarmCollection.find({}).sort((a, b) => b.timestamp - a.timestamp);
+            
+            const csvContent = [
+                'Battery ID,Message,Type,Severity,Start Time,End Time,Duration (s),Voltage,Temperature,Water Level',
+                ...alarms.map(alarm => {
+                    // Format timestamps properly
+                    const startTime = alarm.timestamp instanceof Date ? 
+                        alarm.timestamp.toLocaleString('id-ID') : 
+                        new Date(alarm.timestamp).toLocaleString('id-ID');
+                    
+                    const endTime = alarm.endTime ? 
+                        (alarm.endTime instanceof Date ? 
+                            alarm.endTime.toLocaleString('id-ID') : 
+                            new Date(alarm.endTime).toLocaleString('id-ID')) : 
+                        'Ongoing';
+                    
+                    return [
+                        alarm.batteryId,
+                        `"${alarm.message}"`,
+                        alarm.type,
+                        alarm.severity,
+                        `"${startTime}"`,
+                        `"${endTime}"`,
+                        alarm.duration || 'N/A',
+                        alarm.voltage,
+                        alarm.temperature,
+                        alarm.waterLevel
+                    ].join(',');
+                })
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ups_alarm_history_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            console.log(`📊 Exported ${alarms.length} alarm records to CSV`);
+        }
+
+        function simulateRandomData() {
+            Object.keys(batteryData).forEach(cellId => {
+                // Voltage: 10.0 - 15.0V
+                batteryData[cellId].voltage = Math.random() * 5 + 10.0;
+                
+                // Temperature: 15 - 60°C
+                batteryData[cellId].temperature = Math.random() * 45 + 15;
+                
+                // Water Level: 5 - 100%
+                batteryData[cellId].waterLevel = Math.random() * 95 + 5;
+            });
+            
+            updateDisplay();
+        }
+
+        function resetAllBatteries() {
+            Object.keys(batteryData).forEach(cellId => {
+                batteryData[cellId] = {
+                    voltage: 12.5,
+                    temperature: 25,
+                    waterLevel: 85
+                };
+            });
+            
+            updateDisplay();
+        }
+
+        function updateLimits() {
+            limits.voltageMin = parseFloat(document.getElementById('voltageMin').value);
+            limits.voltageMax = parseFloat(document.getElementById('voltageMax').value);
+            limits.tempWarning = parseFloat(document.getElementById('tempWarning').value);
+            limits.tempCritical = parseFloat(document.getElementById('tempCritical').value);
+            limits.waterWarning = parseFloat(document.getElementById('waterWarning').value);
+            limits.waterCritical = parseFloat(document.getElementById('waterCritical').value);
+            
+            updateDisplay();
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Updated!';
+            btn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'linear-gradient(45deg, #0066ff, #0044cc)';
+            }, 1500);
+        }
+
+        function toggleAutoUpdate() {
+            const button = document.getElementById('autoBtn');
+            
+            if (autoUpdateInterval) {
+                clearInterval(autoUpdateInterval);
+                autoUpdateInterval = null;
+                button.textContent = '▶️ Start Auto Simulation';
+                button.classList.remove('active');
+            } else {
+                autoUpdateInterval = setInterval(() => {
+                    simulateRandomData();
+                }, 2000);
+                button.textContent = '⏸️ Stop Auto Simulation';
+                button.classList.add('active');
+            }
+        }
+
+        // Auto-start the system
+        window.addEventListener('load', () => {
+            // Initialize database with persistent storage
+            alarmDatabase = initializeDatabase();
+            
+            // If database is not loaded yet, wait for autoload
+            if (!alarmCollection) {
+                setTimeout(() => {
+                    createBatteryGrid();
+                    updateDisplay();
+                }, 500);
+            } else {
+                createBatteryGrid();
+                updateDisplay();
+            }
+            
+            // Welcome message
+            setTimeout(() => {
+                console.log('🔋 UPS Battery Monitoring System Started!');
+                console.log('💡 Ready for manual control...');
+                console.log('📊 Alarm history database with persistent storage initialized');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
