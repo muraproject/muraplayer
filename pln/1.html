@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Starter Template for Bootstrap</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link rel="stylesheet"  type="text/css" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+    <link rel="stylesheet"  type="text/css" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="bootstrap/css/starter-template.css" rel="stylesheet">
+    <style type="text/css">
+        #container {
+            font-family: "Open Sans", Helvetica, Arial, serif;
+            padding-right:15px;padding-left:15px;margin-right:auto;margin-left:auto
+        }
+
+        #StartMonthYearSelector {
+            position: absolute;
+            height: auto;
+            width: 240px;
+            padding: 8px;
+            margin: 4px 0 0 0;
+            background-color: #eeeeee;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 3px #dddddd;
+        }
+        #StartMonthYearSelector > div {
+            height: 48px;
+            width: 25%;
+            float: left;
+            text-align: center;
+            line-height: 48px;
+            background-color: #ffffff;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 3px #dddddd;
+        }
+        #StartMonthYearSelector > div:hover {
+            background-color: #333333;
+            color: #ffffff;
+            box-shadow: none;
+        }
+        #StartMonthYearSelector > div.disabled, #StartMonthYearSelector > div.disabled:hover {
+            color: #ccc;
+            cursor: default;
+            background-color: #eee;
+        }
+        #StartMonthYearSelector > header {
+            text-align: center;
+            padding: 8px 0;
+        }
+        #prevYear, #nextYear {
+            cursor: pointer;
+        }
+        #prevYear {
+            float: left;
+            padding-right:10px;
+        }
+        #nextYear {
+            float: right;
+            padding-left:10px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            var curYear = null;
+            var today = new Date();
+            var nowYear = today.getFullYear();
+            var nowMonth = today.getMonth();
+            $('#calInput').focus(function () {
+                //convert string to number -> 0 if null or empty string
+                curYear = +($('#selectedYear').html());
+                if (curYear === 0) {
+                    curYear = nowYear;
+                    $('#selectedYear').html(curYear);
+                    disableFutureMonths();
+                }
+                $('#StartMonthYearSelector').fadeIn('fast');
+            });
+
+            $('#StartMonthYearSelector>div:nth-child(n+2)').click(function () {
+                if ($(this).hasClass('disabled')) {
+                    return;
+                }
+                var date = new Date(curYear, this.innerHTML - 1, 1);
+                $('#calInput').val(date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2));
+                $('#StartMonthYearSelector').fadeOut('fast');
+            });
+
+            $('#prevYear').click(function () {
+                if (curYear === nowYear) {
+                    $('#nextYear').fadeIn('fast');
+                    enableAllMonths();
+                }
+                curYear = curYear - 1;
+                $('#selectedYear').html(curYear);
+
+            });
+
+            $('#nextYear').click(function () {
+                curYear = curYear + 1;
+                $('#selectedYear').html(curYear);
+                if (curYear === nowYear) {
+                    $(this).fadeOut('fast');
+                    disableFutureMonths();
+                }
+            });
+
+            $('html').mousedown(function (ev) {
+                if (!($(ev.target).is('#container *'))) {
+                    $('#StartMonthYearSelector').fadeOut('fast');
+                }
+            });
+
+            function disableFutureMonths() {
+                $('#StartMonthYearSelector>div:nth-child(n+' + (3 + nowMonth) + ')').addClass('disabled');
+            }
+
+            function enableAllMonths() {
+                $('#StartMonthYearSelector>div.disabled').removeClass('disabled');
+            }
+        });
+    </script>
+    
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div id="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Cek Tagihan PLN</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+<div id="container">
+<div class="starter-template">
+    <h1 align="left">Cek Tagihan PLN</h1>
+    <form align="left" action="" accept-charset="utf-8" class="pure-form">
+                    <table>
+                        <tr height="50px">
+                            <td>ID Pelanggan</td>
+                            <td width="50px"></td>
+                            <td><input type="text" id="idpln" name="idpln" ></td>
+                        </tr>
+                        <tr>
+                            <td>Bulan dan Tahun</td>
+                            <td width="50px"></td>
+                            <td>
+                            <input type="text" id="calInput" name="date"></input> <i class="fa fa-calendar"></i></form>
+                            <div id="StartMonthYearSelector" style="display:none;">
+                                <header>
+                                    <div id="prevYear"><i class="fa fa-arrow-left"></i></div>
+                                    <div id="nextYear" style="display:none;"><i class="fa fa-arrow-right"></i></div>
+                                    <div id="selectedYear"></div>
+                                </header>
+                                <div>01</div>
+                                <div>02</div>
+                                <div>03</div>
+                                <div>04</div>
+                                <div>05</div>
+                                <div>06</div>
+                                <div>07</div>
+                                <div>08</div>
+                                <div>09</div>
+                                <div>10</div>
+                                <div>11</div>
+                                <div>12</div>
+                            </div>
+                            </td>
+                            <tr>
+                                <td colspan="2"><button type="button" id="submit" class="btn btn-primary" onclick="myFunction()" >Submit</button>
+                                </td>
+                            </tr>
+                        </tr>
+                        
+                    </table>
+
+                    
+                </form>
+    <div id="StartMonthYearSelector" style="display:none;">
+        <header>
+            <div id="prevYear"><i class="fa fa-arrow-left"></i></div>
+            <div id="nextYear" style="display:none;"><i class="fa fa-arrow-right"></i></div>
+            <div id="selectedYear"></div>
+        </header>
+        <div>01</div>
+        <div>02</div>
+        <div>03</div>
+        <div>04</div>
+        <div>05</div>
+        <div>06</div>
+        <div>07</div>
+        <div>08</div>
+        <div>09</div>
+        <div>10</div>
+        <div>11</div>
+        <div>12</div>
+    </div>
+</div>
+</div>
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Tagihan PLN Anda</h4>
+    </div>
+    <div class="modal-body">
+        <div id="t_error">Data Tidak Ditemukan</div>
+        <table id="t_data" width="100%">
+            <tr>
+                <td width="30%">Nama</td>
+                <td>:</td>
+                <td><div id="p_nama"></div></td>
+            </tr>
+            <tr>
+                <td width="30%">ID Pelanggan</td>
+                <td>:</td>
+                <td><div id="p_id_pln"></id></td>
+            </tr>
+            <tr>
+                <td width="30%">Bulan</td>
+                <td>:</td>
+                <td><div id="p_bulan"></div></td>
+            </tr>
+            <tr>
+                <td width="30%">Tagihan</td>
+                <td>:</td>
+                <td><div id="p_tagihan"></div></td>
+            </tr>
+            
+        </table>
+        
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" onclick="clearText()" data-dismiss="modal" id="close">Close</button>
+    </div>
+    </div>
+    </div>
+</div>
+<div class="footer">
+</div>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script>
+    function myFunction() {
+        var id_pln = document.getElementById("idpln").value;
+        var date   = document.getElementById("calInput").value;
+        var bulan  = date.substring(5,7);
+        var tahun  = date.substring(0,4);
+        var plnAPI = "http://ibacor.com/api/tagihan-pln?idp="+id_pln+"&thn="+tahun+"&bln="+bulan;
+        console.log(plnAPI);
+
+        $.getJSON(plnAPI, function (json) {
+            console.log("status : "+json.status);
+
+            // Set the table td text
+            if(json.status=="succes"){
+
+                // Set the variables from the results array
+                var nama = json.data.nama;
+                var tagihan = json.data.tagihan;
+                console.log('Nama : ', nama);
+                document.getElementById("p_nama").innerHTML = nama;
+                document.getElementById("p_tagihan").innerHTML = "Rp "+tagihan;
+                document.getElementById("p_id_pln").innerHTML = id_pln;
+                document.getElementById("p_bulan").innerHTML = bulan;
+                $("#t_data").show();
+                $("#t_error").hide();
+            }else if(json.status=="error"){
+                $("#t_error").show();
+                $("#t_data").hide();
+
+            }
+            
+        });
+        $('#myModal').modal('show');
+        
+    }
+</script>
+</body>
+</html>
