@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabel Koneksi Rangkaian - Excel Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .download-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+            overflow-x: auto;
+            display: block;
+            white-space: nowrap;
+        }
+        
+        .preview-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .preview-table th, .preview-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .preview-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .preview-table tbody tr:hover {
+            background-color: #e3f2fd;
+            transition: background-color 0.3s ease;
+        }
+        
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Tabel Koneksi Rangkaian Elektronik</h1>
+        <p class="subtitle">NUCLEO-G0B1RE Marine/Drone Control System</p>
+        
+        <div class="download-section">
+            <h3>📥 Download File Excel</h3>
+            <p>Klik tombol di bawah untuk mengunduh tabel koneksi dalam format Excel (.xlsx)</p>
+            <button class="download-btn" onclick="downloadExcel()">
+                📊 Download Excel File
+            </button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">87</div>
+                <div class="stat-label">Total Koneksi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">Jenis Komponen</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Mikrokontroler</div>
+            </div>
+        </div>
+        
+        <h3>👀 Preview Tabel</h3>
+        <div class="table-container">
+            <table class="preview-table" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Komponen</th>
+                        <th>Pin Label</th>
+                        <th>Koneksi dengan Komponen Lain</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Data tabel koneksi
+        const connectionData = [
+            ['1', 'ESC 1', 'Battery VCC', 'VCC (5V)'],
+            ['2', 'ESC 1', 'Battery GND', 'GND (semua komponen GND)'],
+            ['3', 'ESC 1', 'GND out', 'GND (semua komponen GND)'],
+            ['4', 'ESC 1', 'M1', 'Phase 1 pada BLDC Motor 1'],
+            ['5', 'ESC 1', 'M2', 'Phase 2 pada BLDC Motor 1'],
+            ['6', 'ESC 1', 'M3', 'Phase 3 pada BLDC Motor 1'],
+            ['7', 'ESC 1', 'Signal', 'A1 pada NUCLEO-G0B1RE'],
+            ['8', 'ESC 2', 'Battery VCC', 'VCC (5V)'],
+            ['9', 'ESC 2', 'Battery GND', 'GND (semua komponen GND)'],
+            ['10', 'ESC 2', 'GND out', 'GND (semua komponen GND)'],
+            ['11', 'ESC 2', 'M1', 'Phase 1 pada BLDC Motor 2'],
+            ['12', 'ESC 2', 'M2', 'Phase 2 pada BLDC Motor 2'],
+            ['13', 'ESC 2', 'M3', 'Phase 3 pada BLDC Motor 2'],
+            ['14', 'ESC 2', 'Signal', 'A0 pada NUCLEO-G0B1RE'],
+            ['15', 'BLDC Motor 1', 'Phase 1', 'M1 pada ESC 1'],
+            ['16', 'BLDC Motor 1', 'Phase 2', 'M2 pada ESC 1'],
+            ['17', 'BLDC Motor 1', 'Phase 3', 'M3 pada ESC 1'],
+            ['18', 'BLDC Motor 2', 'Phase 1', 'M1 pada ESC 2'],
+            ['19', 'BLDC Motor 2', 'Phase 2', 'M2 pada ESC 2'],
+            ['20', 'BLDC Motor 2', 'Phase 3', 'M3 pada ESC 2'],
+            ['21', 'Servo 1 (Rudder)', 'GND', 'GND (semua komponen GND)'],
+            ['22', 'Servo 1 (Rudder)', 'VCC', 'VCC (5V)'],
+            ['23', 'Servo 1 (Rudder)', 'PWM', 'Pin 13 pada NUCLEO-G0B1RE'],
+            ['24', 'Servo 2 (Rudder)', 'GND', 'GND (semua komponen GND)'],
+            ['25', 'Servo 2 (Rudder)', 'VCC', 'VCC (5V)'],
+            ['26', 'Servo 2 (Rudder)', 'PWM', 'Pin 12 pada NUCLEO-G0B1RE'],
+            ['27', 'Servo 3 (Throttle)', 'GND', 'GND (semua komponen GND)'],
+            ['28', 'Servo 3 (Throttle)', 'VCC', 'VCC (5V)'],
+            ['29', 'Servo 3 (Throttle)', 'PWM', 'A2 pada NUCLEO-G0B1RE'],
+            ['30', 'ACS758 Current Sensor 1', 'VCC', 'VCC (5V)'],
+            ['31', 'ACS758 Current Sensor 1', 'VCC', 'VCC (5V)'],
+            ['32', 'ACS758 Current Sensor 1', 'GND', 'GND (semua komponen GND)'],
+            ['33', 'ACS758 Current Sensor 1', 'OUT', 'G35 pada ESP32 1'],
+            ['34', 'ACS758 Current Sensor 2', 'VCC', 'VCC (5V)'],
+            ['35', 'ACS758 Current Sensor 2', 'VCC', 'VCC (5V)'],
+            ['36', 'ACS758 Current Sensor 2', 'GND', 'GND (semua komponen GND)'],
+            ['37', 'ACS758 Current Sensor 2', 'OUT', 'G34 pada ESP32 1'],
+            ['38', 'EBYTE LoRa E220', 'GND', 'GND (semua komponen GND)'],
+            ['39', 'EBYTE LoRa E220', 'VCC', 'VCC (5V)'],
+            ['40', 'EBYTE LoRa E220', 'RXD', 'D8 pada NUCLEO-G0B1RE'],
+            ['41', 'EBYTE LoRa E220', 'TXD', 'D2 pada NUCLEO-G0B1RE'],
+            ['42', 'Lipo 6200mAh', '+', 'VCC (5V)'],
+            ['43', 'Lipo 6200mAh', '-', 'GND (semua komponen GND)'],
+            ['44', 'NUCLEO-G0B1RE', 'A0', 'Signal pada ESC 2'],
+            ['45', 'NUCLEO-G0B1RE', 'A1', 'Signal pada ESC 1'],
+            ['46', 'NUCLEO-G0B1RE', 'A2', 'PWM pada Servo 3 (Throttle)'],
+            ['47', 'NUCLEO-G0B1RE', 'Pin 12', 'PWM pada Servo 2 (Rudder)'],
+            ['48', 'NUCLEO-G0B1RE', 'Pin 13', 'PWM pada Servo 1 (Rudder)'],
+            ['49', 'NUCLEO-G0B1RE', '5V', 'VCC (5V)'],
+            ['50', 'NUCLEO-G0B1RE', 'GND', 'GND (semua komponen GND)'],
+            ['51', 'NUCLEO-G0B1RE', 'D2', 'TXD pada EBYTE LoRa E220'],
+            ['52', 'NUCLEO-G0B1RE', 'D8', 'RXD pada EBYTE LoRa E220'],
+            ['53', 'NUCLEO-G0B1RE', 'SCL/D15', 'G22 pada ESP32 1'],
+            ['54', 'NUCLEO-G0B1RE', 'SDA/D14', 'G21 pada ESP32 1'],
+            ['55', 'ESP32 1', 'GND', 'GND (semua komponen GND)'],
+            ['56', 'ESP32 1', 'V5', 'VCC (5V)'],
+            ['57', 'ESP32 1', 'G35', 'OUT pada ACS758 Current Sensor 1'],
+            ['58', 'ESP32 1', 'G34', 'OUT pada ACS758 Current Sensor 2'],
+            ['59', 'ESP32 1', 'G22', 'SCL pada NUCLEO-G0B1RE'],
+            ['60', 'ESP32 1', 'G21', 'SDA pada NUCLEO-G0B1RE'],
+            ['61', 'ESP32 1', 'G35', 'C pada Photodiode 1'],
+            ['62', 'ESP32 1', 'G33', 'C pada Photodiode 2'],
+            ['63', 'ESP32 1', 'G32', 'C pada Photodiode 3'],
+            ['64', 'ESP32 2', 'GND', 'GND (semua komponen GND)'],
+            ['65', 'ESP32 2', 'V5', 'VCC (5V)'],
+            ['66', 'ESP32 2', 'G32', 'Telemetry (on-screen display) pada Pixhawk'],
+            ['67', 'ESP32 2', 'G33', 'OUT pada Water Flow Rate Sensor'],
+            ['68', 'ESP32 2', 'G17', 'Telemetry (Serial) RX pada Pixhawk'],
+            ['69', 'ESP32 2', 'G16', 'Telemetry (Serial) TX pada Pixhawk'],
+            ['70', 'Pixhawk Px4 Front', 'Telemetry (Serial) RX', 'G17 pada ESP32 2'],
+            ['71', 'Pixhawk Px4 Front', 'Telemetry (Serial) TX', 'G16 pada ESP32 2'],
+            ['72', 'Pixhawk Px4 Front', 'Telemetry (on-screen display)', 'G32 pada ESP32 2'],
+            ['73', 'Water Flow Rate Sensor YF-S401', 'IN positive', 'VCC (5V)'],
+            ['74', 'Water Flow Rate Sensor YF-S401', 'GND negative', 'GND (semua komponen GND)'],
+            ['75', 'Water Flow Rate Sensor YF-S401', 'OUT signal output', 'G33 pada ESP32 2'],
+            ['76', 'KY-008 Laser Emitter 1', 'SIG', 'GND (semua komponen GND)'],
+            ['77', 'KY-008 Laser Emitter 1', '5V', 'VCC (5V)'],
+            ['78', 'KY-008 Laser Emitter 1', 'GND', 'GND (semua komponen GND)'],
+            ['79', 'KY-008 Laser Emitter 2', 'SIG', 'GND (semua komponen GND)'],
+            ['80', 'KY-008 Laser Emitter 2', '5V', 'VCC (5V)'],
+            ['81', 'KY-008 Laser Emitter 2', 'GND', 'GND (semua komponen GND)'],
+            ['82', 'Photodiode 1', 'E', 'GND (semua komponen GND)'],
+            ['83', 'Photodiode 1', 'C', 'G35 pada ESP32 1'],
+            ['84', 'Photodiode 2', 'E', 'GND (semua komponen GND)'],
+            ['85', 'Photodiode 2', 'C', 'G33 pada ESP32 1'],
+            ['86', 'Photodiode 3', 'E', 'GND (semua komponen GND)'],
+            ['87', 'Photodiode 3', 'C', 'G32 pada ESP32 1']
+        ];
+
+        // Mengisi tabel preview
+        function populateTable() {
+            const tableBody = document.getElementById('tableBody');
+            connectionData.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Fungsi download Excel
+        function downloadExcel() {
+            // Header untuk Excel
+            const headers = ['No', 'Komponen', 'Pin Label', 'Koneksi dengan Komponen Lain'];
+            
+            // Gabungkan header dengan data
+            const excelData = [headers, ...connectionData];
+            
+            // Buat workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            
+            // Set lebar kolom
+            ws['!cols'] = [
+                {wch: 5},   // No
+                {wch: 30},  // Komponen
+                {wch: 20},  // Pin Label
+                {wch: 40}   // Koneksi
+            ];
+            
+            // Styling header (bold)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const headerCell = ws[XLSX.utils.encode_cell({r: 0, c: col})];
+                if (headerCell) {
+                    headerCell.s = {
+                        font: { bold: true },
+                        fill: { fgColor: { rgb: "4472C4" } },
+                        font: { color: { rgb: "FFFFFF" }, bold: true }
+                    };
+                }
+            }
+            
+            // Tambahkan worksheet ke workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Koneksi Rangkaian');
+            
+            // Download file
+            XLSX.writeFile(wb, 'Tabel_Koneksi_Rangkaian_NUCLEO_G0B1RE.xlsx');
+        }
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTable();
+        });
+    </script>
+</body>
+</html>

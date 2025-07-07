@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN dengan Anomaly-Based Training Data</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.17.0/tf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        input, select, button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .range-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .range-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #00d2ff;
+        }
+        
+        .range-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .anomaly-highlight {
+            background: rgba(255, 99, 71, 0.3);
+            border-left-color: #ff6347;
+        }
+        
+        .clean-highlight {
+            background: rgba(46, 204, 113, 0.3);
+            border-left-color: #2ecc71;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .prediction-result {
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .status-1 { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+        .status-2 { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .status-3 { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        
+        .data-quality {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Neural Network dengan Anomaly-Based Training</h1>
+        
+        <div class="section">
+            <h2>📊 Step 1: Load Data & Range Analysis</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Upload Data CSV:</label>
+                    <input type="file" id="csvFile" accept=".csv">
+                </div>
+                <div class="input-group">
+                    <label>Range Size (cm):</label>
+                    <select id="rangeSize">
+                        <option value="25">25 cm</option>
+                        <option value="50" selected>50 cm</option>
+                        <option value="100">100 cm</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <button id="analyzeRanges">📈 Analyze Ranges & Find Overlaps</button>
+                </div>
+            </div>
+            <div id="analysisLog" class="log"></div>
+            
+            <div id="rangeAnalysis" style="display:none;">
+                <h3>📊 Range Analysis Results:</h3>
+                <div id="rangeResults" class="range-analysis"></div>
+                
+                <div class="data-quality">
+                    <h4>🎯 Data Quality Assessment:</h4>
+                    <div id="qualityMetrics"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="anomalySection" style="display:none;">
+            <h2>🔍 Step 2: Extract Anomaly Data</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Anomaly Strategy:</label>
+                    <select id="anomalyStrategy">
+                        <option value="dominant">Exclude Dominant Status in Range</option>
+                        <option value="minority" selected>Take Minority Status Only</option>
+                        <option value="outlier">Statistical Outlier Detection</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Min Samples per Status:</label>
+                    <input type="number" id="minSamples" value="10" min="5" max="100">
+                </div>
+                <div class="input-group">
+                    <button id="extractAnomalies">🔍 Extract Anomaly Data</button>
+                </div>
+            </div>
+            <div id="anomalyLog" class="log"></div>
+            
+            <div id="anomalyResults" style="display:none;">
+                <h3>🎯 Anomaly Data Extracted:</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="originalCount">-</div>
+                        <div class="stat-label">Original Data</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="anomalyCount">-</div>
+                        <div class="stat-label">Anomaly Data</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="reductionRatio">-</div>
+                        <div class="stat-label">Data Reduction</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="balanceScore">-</div>
+                        <div class="stat-label">Class Balance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="neuralSection" style="display:none;">
+            <h2>🧠 Step 3: Neural Network Training (Clean Data)</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Epochs:</label>
+                    <input type="number" id="epochs" value="100" min="20" max="300">
+                </div>
+                <div class="input-group">
+                    <label>Learning Rate:</label>
+                    <select id="learningRate">
+                        <option value="0.001">0.001 (Conservative)</option>
+                        <option value="0.01" selected>0.01 (Normal)</option>
+                        <option value="0.05">0.05 (Aggressive)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <button id="trainCleanNN">🚀 Train with Clean Data</button>
+                </div>
+            </div>
+            
+            <div id="trainingProgress" style="display:none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="trainingLog" class="log"></div>
+            </div>
+            
+            <div id="nnResults" style="display:none;">
+                <h3>🎯 Neural Network Results:</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="nnAccuracy">-</div>
+                        <div class="stat-label">Test Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nnLoss">-</div>
+                        <div class="stat-label">Final Loss</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nnTime">-</div>
+                        <div class="stat-label">Training Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nnGeneralization">-</div>
+                        <div class="stat-label">Generalization</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="predictionSection" style="display:none;">
+            <h2>🔮 Step 4: Prediction with Clean Model</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Water Level (cm):</label>
+                    <input type="number" id="inputWaterLevel" value="200" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Rainfall (mm):</label>
+                    <input type="number" id="inputRainfall" value="0" step="0.1">
+                </div>
+                <div class="input-group">
+                    <button id="predictClean">🔍 Predict with Clean Model</button>
+                </div>
+            </div>
+            
+            <div id="predictionResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = [];
+        let rangeAnalysis = {};
+        let anomalyData = [];
+        let model = null;
+        let scaler = null;
+
+        function log(message, elementId = 'analysisLog') {
+            const logElement = document.getElementById(elementId);
+            logElement.innerHTML += message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // File loading
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    Papa.parse(csv, {
+                        header: false,
+                        dynamicTyping: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            rawData = results.data.map(row => ({
+                                id: row[0],
+                                rainfall: row[1] || 0,
+                                unknown: row[2] || 0,
+                                water_level: row[3] || 0,
+                                timestamp: row[4],
+                                status: row[5] || 1
+                            }));
+                            log(`✅ Loaded ${rawData.length} data points`);
+                            log('📊 Ready for range analysis');
+                        }
+                    });
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Range analysis
+        document.getElementById('analyzeRanges').addEventListener('click', function() {
+            if (rawData.length === 0) {
+                log('❌ Please load CSV file first');
+                return;
+            }
+
+            const rangeSize = parseInt(document.getElementById('rangeSize').value);
+            log(`🔄 Analyzing data with ${rangeSize}cm ranges...`);
+            
+            // Group data by ranges
+            rangeAnalysis = {};
+            const validData = rawData.filter(row => !isNaN(row.water_level) && row.status);
+            
+            validData.forEach(row => {
+                const rangeStart = Math.floor(row.water_level / rangeSize) * rangeSize;
+                const rangeKey = `${rangeStart}-${rangeStart + rangeSize}`;
+                
+                if (!rangeAnalysis[rangeKey]) {
+                    rangeAnalysis[rangeKey] = { 1: [], 2: [], 3: [] };
+                }
+                
+                rangeAnalysis[rangeKey][row.status].push(row);
+            });
+
+            displayRangeAnalysis();
+            calculateDataQuality();
+            
+            document.getElementById('rangeAnalysis').style.display = 'block';
+            document.getElementById('anomalySection').style.display = 'block';
+            
+            log('✅ Range analysis completed');
+        });
+
+        function displayRangeAnalysis() {
+            const resultsDiv = document.getElementById('rangeResults');
+            resultsDiv.innerHTML = '';
+            
+            Object.entries(rangeAnalysis).forEach(([range, statusData]) => {
+                const total = statusData[1].length + statusData[2].length + statusData[3].length;
+                if (total === 0) return;
+                
+                // Find dominant status
+                const counts = {
+                    1: statusData[1].length,
+                    2: statusData[2].length,
+                    3: statusData[3].length
+                };
+                
+                const dominant = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+                const dominantPercentage = (counts[dominant] / total * 100).toFixed(1);
+                
+                // Check if range has overlap (multiple statuses)
+                const statusCount = Object.values(counts).filter(c => c > 0).length;
+                const hasOverlap = statusCount > 1;
+                
+                const div = document.createElement('div');
+                div.className = `range-card ${hasOverlap ? 'anomaly-highlight' : 'clean-highlight'}`;
+                div.innerHTML = `
+                    <div class="range-header">${range} cm ${hasOverlap ? '⚠️ OVERLAP' : '✅ CLEAN'}</div>
+                    <strong>Total: ${total} samples</strong><br>
+                    Status 1: ${counts[1]} (${(counts[1]/total*100).toFixed(1)}%)<br>
+                    Status 2: ${counts[2]} (${(counts[2]/total*100).toFixed(1)}%)<br>
+                    Status 3: ${counts[3]} (${(counts[3]/total*100).toFixed(1)}%)<br>
+                    <strong>Dominant: Status ${dominant} (${dominantPercentage}%)</strong>
+                    ${hasOverlap ? '<br><span style="color: #ff6347;">🔥 Contains multiple statuses</span>' : ''}
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        function calculateDataQuality() {
+            let totalRanges = 0;
+            let overlapRanges = 0;
+            let totalSamples = 0;
+            let balancedRanges = 0;
+            
+            Object.entries(rangeAnalysis).forEach(([range, statusData]) => {
+                const counts = {
+                    1: statusData[1].length,
+                    2: statusData[2].length,
+                    3: statusData[3].length
+                };
+                
+                const total = counts[1] + counts[2] + counts[3];
+                if (total === 0) return;
+                
+                totalRanges++;
+                totalSamples += total;
+                
+                const statusCount = Object.values(counts).filter(c => c > 0).length;
+                if (statusCount > 1) overlapRanges++;
+                
+                // Check if range is balanced (no single status > 70%)
+                const maxPercentage = Math.max(...Object.values(counts)) / total;
+                if (maxPercentage <= 0.7) balancedRanges++;
+            });
+            
+            const overlapPercentage = (overlapRanges / totalRanges * 100).toFixed(1);
+            const balancePercentage = (balancedRanges / totalRanges * 100).toFixed(1);
+            
+            document.getElementById('qualityMetrics').innerHTML = `
+                <strong>Data Quality Metrics:</strong><br>
+                • Total Ranges: ${totalRanges}<br>
+                • Overlapping Ranges: ${overlapRanges} (${overlapPercentage}%)<br>
+                • Balanced Ranges: ${balancedRanges} (${balancePercentage}%)<br>
+                • Total Samples: ${totalSamples}<br><br>
+                
+                <strong>Quality Assessment:</strong><br>
+                ${overlapPercentage > 50 ? '🔴 High overlap detected - Anomaly extraction recommended' : '🟡 Moderate overlap - Consider data cleaning'}<br>
+                ${balancePercentage < 30 ? '🔴 Low balance - Need minority sampling' : '🟢 Good class distribution'}
+            `;
+            
+            log(`📊 Quality: ${overlapPercentage}% overlap, ${balancePercentage}% balanced`);
+        }
+
+        // Anomaly extraction
+        document.getElementById('extractAnomalies').addEventListener('click', function() {
+            if (Object.keys(rangeAnalysis).length === 0) {
+                log('❌ Please perform range analysis first', 'anomalyLog');
+                return;
+            }
+
+            const strategy = document.getElementById('anomalyStrategy').value;
+            const minSamples = parseInt(document.getElementById('minSamples').value);
+            
+            log(`🔍 Extracting anomalies using "${strategy}" strategy...`, 'anomalyLog');
+            
+            anomalyData = [];
+            let extractedRanges = 0;
+            
+            Object.entries(rangeAnalysis).forEach(([range, statusData]) => {
+                const counts = {
+                    1: statusData[1].length,
+                    2: statusData[2].length,
+                    3: statusData[3].length
+                };
+                
+                const total = counts[1] + counts[2] + counts[3];
+                if (total === 0) return;
+                
+                let extracted = [];
+                
+                if (strategy === 'dominant') {
+                    // Exclude dominant status, take minorities
+                    const dominant = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+                    Object.keys(counts).forEach(status => {
+                        if (status !== dominant && counts[status] >= minSamples) {
+                            extracted.push(...statusData[status]);
+                        }
+                    });
+                    
+                } else if (strategy === 'minority') {
+                    // Take only minority statuses (< 40% of range)
+                    Object.keys(counts).forEach(status => {
+                        const percentage = counts[status] / total;
+                        if (percentage < 0.4 && counts[status] >= minSamples) {
+                            extracted.push(...statusData[status]);
+                        }
+                    });
+                    
+                } else if (strategy === 'outlier') {
+                    // Statistical outlier detection based on water level within status
+                    Object.keys(counts).forEach(status => {
+                        if (counts[status] >= minSamples) {
+                            const samples = statusData[status];
+                            const waterLevels = samples.map(s => s.water_level);
+                            const mean = waterLevels.reduce((a, b) => a + b, 0) / waterLevels.length;
+                            const std = Math.sqrt(waterLevels.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / waterLevels.length);
+                            
+                            // Take samples that are > 1 std deviation from mean
+                            samples.forEach(sample => {
+                                const deviation = Math.abs(sample.water_level - mean) / std;
+                                if (deviation > 1) {
+                                    extracted.push(sample);
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (extracted.length > 0) {
+                    anomalyData.push(...extracted);
+                    extractedRanges++;
+                    log(`📦 Range ${range}: extracted ${extracted.length} anomaly samples`, 'anomalyLog');
+                }
+            });
+            
+            // Calculate balance
+            const anomalyStatusCount = { 1: 0, 2: 0, 3: 0 };
+            anomalyData.forEach(sample => {
+                anomalyStatusCount[sample.status]++;
+            });
+            
+            const balanceRatio = Math.min(...Object.values(anomalyStatusCount)) / Math.max(...Object.values(anomalyStatusCount));
+            const reductionRatio = ((rawData.length - anomalyData.length) / rawData.length * 100).toFixed(1);
+            
+            // Update UI
+            document.getElementById('originalCount').textContent = rawData.length;
+            document.getElementById('anomalyCount').textContent = anomalyData.length;
+            document.getElementById('reductionRatio').textContent = reductionRatio + '%';
+            document.getElementById('balanceScore').textContent = (balanceRatio * 100).toFixed(1) + '%';
+            
+            document.getElementById('anomalyResults').style.display = 'block';
+            document.getElementById('neuralSection').style.display = 'block';
+            
+            log(`✅ Extracted ${anomalyData.length} anomaly samples from ${extractedRanges} ranges`, 'anomalyLog');
+            log(`📊 Status distribution: ${JSON.stringify(anomalyStatusCount)}`, 'anomalyLog');
+            log(`⚖️ Class balance: ${(balanceRatio * 100).toFixed(1)}%`, 'anomalyLog');
+        });
+
+        // Neural Network Training with clean data
+        document.getElementById('trainCleanNN').addEventListener('click', async function() {
+            if (anomalyData.length === 0) {
+                log('❌ Please extract anomaly data first', 'trainingLog');
+                return;
+            }
+
+            document.getElementById('trainingProgress').style.display = 'block';
+            log('🚀 Training NN with clean anomaly data...', 'trainingLog');
+
+            try {
+                // Prepare clean training data
+                const cleanData = anomalyData.map(row => ({
+                    water_level: row.water_level,
+                    rainfall: row.rainfall,
+                    status: row.status
+                }));
+
+                // Shuffle data
+                for (let i = cleanData.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cleanData[i], cleanData[j]] = [cleanData[j], cleanData[i]];
+                }
+
+                // Normalize
+                const waterLevels = cleanData.map(d => d.water_level);
+                const rainfalls = cleanData.map(d => d.rainfall);
+                
+                const waterMin = Math.min(...waterLevels);
+                const waterMax = Math.max(...waterLevels);
+                const rainMin = Math.min(...rainfalls);
+                const rainMax = Math.max(...rainfalls);
+                
+                scaler = { waterMin, waterMax, rainMin, rainMax };
+                
+                log(`💧 Water range: ${waterMin.toFixed(1)} - ${waterMax.toFixed(1)} cm`, 'trainingLog');
+                log(`🌧️ Rain range: ${rainMin.toFixed(1)} - ${rainMax.toFixed(1)} mm`, 'trainingLog');
+                
+                // Prepare training data
+                const X = cleanData.map(row => [
+                    (row.water_level - waterMin) / (waterMax - waterMin),
+                    (row.rainfall - rainMin) / (rainMax - rainMin || 1)
+                ]);
+                
+                const y = cleanData.map(row => {
+                    const oneHot = [0, 0, 0];
+                    oneHot[row.status - 1] = 1;
+                    return oneHot;
+                });
+                
+                // Split data
+                const splitIndex = Math.floor(X.length * 0.8);
+                const xTrain = X.slice(0, splitIndex);
+                const yTrain = y.slice(0, splitIndex);
+                const xTest = X.slice(splitIndex);
+                const yTest = y.slice(splitIndex);
+                
+                log(`📦 Clean Training: ${xTrain.length}, Testing: ${xTest.length}`, 'trainingLog');
+
+                // Build model
+                model = tf.sequential({
+                    layers: [
+                        tf.layers.dense({ 
+                            inputShape: [2], 
+                            units: 12, 
+                            activation: 'relu',
+                            kernelInitializer: 'glorotUniform'
+                        }),
+                        tf.layers.dropout({ rate: 0.3 }),
+                        tf.layers.dense({ 
+                            units: 6, 
+                            activation: 'relu' 
+                        }),
+                        tf.layers.dense({ 
+                            units: 3, 
+                            activation: 'softmax' 
+                        })
+                    ]
+                });
+
+                const learningRate = parseFloat(document.getElementById('learningRate').value);
+                model.compile({
+                    optimizer: tf.train.adam(learningRate),
+                    loss: 'categoricalCrossentropy',
+                    metrics: ['accuracy']
+                });
+
+                log(`🧠 Model: 2 → 12 → 6 → 3 (LR: ${learningRate})`, 'trainingLog');
+
+                const epochs = parseInt(document.getElementById('epochs').value);
+                const startTime = Date.now();
+                
+                const xTrainTensor = tf.tensor2d(xTrain);
+                const yTrainTensor = tf.tensor2d(yTrain);
+                const xTestTensor = tf.tensor2d(xTest);
+                const yTestTensor = tf.tensor2d(yTest);
+                
+                await model.fit(xTrainTensor, yTrainTensor, {
+                    epochs: epochs,
+                    batchSize: Math.min(16, Math.floor(xTrain.length / 4)),
+                    validationData: [xTestTensor, yTestTensor],
+                    shuffle: true,
+                    callbacks: {
+                        onEpochEnd: (epoch, logs) => {
+                            const progress = ((epoch + 1) / epochs) * 100;
+                            document.getElementById('progressFill').style.width = progress + '%';
+                            
+                            if ((epoch + 1) % 20 === 0 || epoch < 5) {
+                                log(`Epoch ${epoch + 1}: loss=${logs.loss.toFixed(3)}, acc=${logs.acc.toFixed(3)}, val_acc=${logs.val_acc.toFixed(3)}`, 'trainingLog');
+                            }
+                        }
+                    }
+                });
+
+                const trainingTime = (Date.now() - startTime) / 1000;
+                
+                // Final evaluation
+                const evaluation = model.evaluate(xTestTensor, yTestTensor);
+                const testLoss = await evaluation[0].data();
+                const testAcc = await evaluation[1].data();
+                
+                // Calculate generalization score (train vs test accuracy difference)
+                const trainEval = model.evaluate(xTrainTensor, yTrainTensor);
+                const trainAcc = await trainEval[1].data();
+                const generalization = Math.max(0, 100 - Math.abs(trainAcc[0] - testAcc[0]) * 100);
+
+                document.getElementById('nnAccuracy').textContent = (testAcc[0] * 100).toFixed(1) + '%';
+                document.getElementById('nnLoss').textContent = testLoss[0].toFixed(3);
+                document.getElementById('nnTime').textContent = trainingTime.toFixed(1) + 's';
+                document.getElementById('nnGeneralization').textContent = generalization.toFixed(1) + '%';
+
+                document.getElementById('nnResults').style.display = 'block';
+                document.getElementById('predictionSection').style.display = 'block';
+
+                log(`✅ Clean model trained: ${(testAcc[0] * 100).toFixed(1)}% accuracy`, 'trainingLog');
+                log(`🎯 Generalization score: ${generalization.toFixed(1)}%`, 'trainingLog');
+                
+                // Test with some clean samples
+                await testCleanSamples(xTestTensor, yTestTensor);
+                
+                // Cleanup tensors
+                xTrainTensor.dispose();
+                yTrainTensor.dispose();
+                xTestTensor.dispose();
+                yTestTensor.dispose();
+                evaluation[0].dispose();
+                evaluation[1].dispose();
+                trainEval[1].dispose();
+
+            } catch (error) {
+                log(`❌ Training error: ${error.message}`, 'trainingLog');
+                console.error('Full error:', error);
+            }
+        });
+
+        // Test clean samples
+        async function testCleanSamples(xTestTensor, yTestTensor) {
+            try {
+                const testPredictions = model.predict(xTestTensor);
+                const predProbs = await testPredictions.data();
+                const actualLabels = await yTestTensor.data();
+                
+                const numSamples = Math.min(5, xTestTensor.shape[0]);
+                log('🧪 Testing clean model with samples:', 'trainingLog');
+                
+                for (let i = 0; i < numSamples; i++) {
+                    const predStart = i * 3;
+                    const predSlice = predProbs.slice(predStart, predStart + 3);
+                    const predictedClass = predSlice.indexOf(Math.max(...predSlice)) + 1;
+                    
+                    const actualStart = i * 3;
+                    const actualSlice = actualLabels.slice(actualStart, actualStart + 3);
+                    const actualClass = actualSlice.indexOf(1) + 1;
+                    
+                    const confidence = Math.max(...predSlice) * 100;
+                    const correct = predictedClass === actualClass ? '✅' : '❌';
+                    
+                    log(`Clean Sample ${i + 1}: Pred ${predictedClass} (${confidence.toFixed(1)}%), Actual ${actualClass} ${correct}`, 'trainingLog');
+                }
+                
+                testPredictions.dispose();
+            } catch (error) {
+                log(`Clean sample testing error: ${error.message}`, 'trainingLog');
+            }
+        }
+
+        // Clean prediction
+        document.getElementById('predictClean').addEventListener('click', async function() {
+            if (!model || !scaler) {
+                alert('Please train the clean model first');
+                return;
+            }
+
+            const waterLevel = parseFloat(document.getElementById('inputWaterLevel').value);
+            const rainfall = parseFloat(document.getElementById('inputRainfall').value);
+            
+            // Normalize input
+            const normalizedInput = [
+                (waterLevel - scaler.waterMin) / (scaler.waterMax - scaler.waterMin),
+                (rainfall - scaler.rainMin) / (scaler.rainMax - scaler.rainMin || 1)
+            ];
+            
+            // Neural Network prediction
+            const nnPrediction = model.predict(tf.tensor2d([normalizedInput]));
+            const probabilities = await nnPrediction.data();
+            const nnPredictedStatus = probabilities.indexOf(Math.max(...probabilities)) + 1;
+            const confidence = Math.max(...probabilities) * 100;
+            
+            // Show all probabilities
+            const prob1 = (probabilities[0] * 100).toFixed(1);
+            const prob2 = (probabilities[1] * 100).toFixed(1);
+            const prob3 = (probabilities[2] * 100).toFixed(1);
+            
+            // Check if input is within training range (extrapolation warning)
+            const withinRange = waterLevel >= scaler.waterMin && waterLevel <= scaler.waterMax;
+            const rainWithinRange = rainfall >= scaler.rainMin && rainfall <= scaler.rainMax;
+            
+            // Display results
+            const resultsHTML = `
+                <div class="prediction-result status-${nnPredictedStatus}">
+                    <strong>🧠 Clean Neural Network Prediction</strong><br>
+                    Status ${nnPredictedStatus}<br>
+                    <small>Confidence: ${confidence.toFixed(1)}%</small>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <h4>🔍 Detailed Clean Model Analysis:</h4>
+                    <strong>Input:</strong> Water Level = ${waterLevel}cm, Rainfall = ${rainfall}mm<br>
+                    <strong>Normalized:</strong> [${normalizedInput[0].toFixed(3)}, ${normalizedInput[1].toFixed(3)}]<br>
+                    <strong>Training Range:</strong> Water ${scaler.waterMin.toFixed(1)}-${scaler.waterMax.toFixed(1)}cm, Rain ${scaler.rainMin.toFixed(1)}-${scaler.rainMax.toFixed(1)}mm<br><br>
+                    
+                    <strong>Clean Model Probabilities:</strong><br>
+                    • Status 1: ${prob1}%<br>
+                    • Status 2: ${prob2}%<br>
+                    • Status 3: ${prob3}%<br><br>
+                    
+                    <strong>Model Reliability:</strong><br>
+                    ${withinRange ? '✅' : '⚠️'} Water level ${withinRange ? 'within' : 'outside'} training range<br>
+                    ${rainWithinRange ? '✅' : '⚠️'} Rainfall ${rainWithinRange ? 'within' : 'outside'} training range<br>
+                    ${confidence > 70 ? '✅ High confidence prediction' : confidence > 50 ? '⚠️ Moderate confidence' : '🔴 Low confidence - be cautious'}<br><br>
+                    
+                    <strong>Model Quality:</strong><br>
+                    • Trained on ${anomalyData.length} clean anomaly samples<br>
+                    • Reduced noise by filtering overlapping ranges<br>
+                    • Focus on distinctive patterns per status<br>
+                    ${!withinRange || !rainWithinRange ? '<br><span style="color: #f39c12;">⚠️ Input outside training range - prediction may be unreliable (extrapolation)</span>' : ''}
+                </div>
+            `;
+            
+            document.getElementById('predictionResults').innerHTML = resultsHTML;
+            
+            nnPrediction.dispose();
+        });
+
+        // Auto-update prediction
+        let predictionTimeout;
+        ['inputWaterLevel', 'inputRainfall'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                clearTimeout(predictionTimeout);
+                predictionTimeout = setTimeout(() => {
+                    if (model && scaler) {
+                        document.getElementById('predictClean').click();
+                    }
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>

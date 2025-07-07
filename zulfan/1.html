@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Deteksi Banjir - Simple & Accurate</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.17.0/tf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .insight-box {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .insight-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .status-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-card {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-1 { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+        .status-2 { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .status-3 { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        input, select, button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .prediction-result {
+            font-size: 1.5em;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .confidence-bars {
+            margin: 20px 0;
+        }
+        
+        .confidence-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 15px;
+        }
+        
+        .confidence-label {
+            width: 120px;
+            font-weight: bold;
+        }
+        
+        .confidence-bar {
+            flex: 1;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .feature-viz {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .feature-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+        
+        .threshold-viz {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .threshold-scale {
+            height: 60px;
+            background: linear-gradient(90deg, #e74c3c 0%, #f39c12 33%, #2ecc71 66%, #2ecc71 100%);
+            border-radius: 30px;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .threshold-marker {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 80px;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .threshold-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 Neural Network Deteksi Banjir - Simple & Accurate</h1>
+        
+        <div class="insight-box">
+            <div class="insight-title">💡 Insight dari Analisis Data</div>
+            <p><strong>Sensor mengukur jarak ke permukaan air (semakin rendah nilai = air semakin tinggi)</strong></p>
+            <div class="status-info">
+                <div class="status-card status-1">
+                    <div>Status 1 - NORMAL</div>
+                    <div>Rata-rata: 283 cm</div>
+                    <div>Air Rendah - Aman</div>
+                </div>
+                <div class="status-card status-2">
+                    <div>Status 2 - WASPADA</div>
+                    <div>Rata-rata: 224 cm</div>
+                    <div>Air Naik - Siaga</div>
+                </div>
+                <div class="status-card status-3">
+                    <div>Status 3 - BAHAYA</div>
+                    <div>Rata-rata: 190 cm</div>
+                    <div>Air Tinggi - Banjir</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Data Loading & Preprocessing</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Upload Data CSV:</label>
+                    <input type="file" id="csvFile" accept=".csv">
+                </div>
+                <div class="input-group">
+                    <label>Feature Selection:</label>
+                    <select id="featureMode">
+                        <option value="simple">Simple (Distance + Rainfall)</option>
+                        <option value="enhanced" selected>Enhanced (+ Trend + Context)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <button id="loadData">📁 Load & Process Data</button>
+                </div>
+            </div>
+            <div id="dataInfo" class="log"></div>
+        </div>
+
+        <div class="section">
+            <h2>🧠 Neural Network Training</h2>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Network Architecture:</label>
+                    <select id="architecture">
+                        <option value="simple">Simple: 2 layers</option>
+                        <option value="medium" selected>Medium: 3 layers</option>
+                        <option value="deep">Deep: 4 layers</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Learning Rate:</label>
+                    <select id="learningRate">
+                        <option value="0.001">0.001 (Slow)</option>
+                        <option value="0.01" selected>0.01 (Normal)</option>
+                        <option value="0.1">0.1 (Fast)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Training Epochs:</label>
+                    <input type="number" id="epochs" value="100" min="20" max="500">
+                </div>
+                <div class="input-group">
+                    <button id="trainModel">🚀 Train Neural Network</button>
+                </div>
+            </div>
+            
+            <div id="trainingProgress" style="display:none;">
+                <h3>Training Progress:</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="trainingLog" class="log"></div>
+            </div>
+        </div>
+
+        <div class="section" id="resultsSection" style="display:none;">
+            <h2>📈 Training Results</h2>
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="trainAccuracy">-</div>
+                    <div class="metric-label">Train Accuracy</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="testAccuracy">-</div>
+                    <div class="metric-label">Test Accuracy</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="finalLoss">-</div>
+                    <div class="metric-label">Final Loss</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="trainingTime">-</div>
+                    <div class="metric-label">Training Time (s)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="predictionSection" style="display:none;">
+            <h2>🔮 Real-time Prediction</h2>
+            
+            <div class="threshold-viz">
+                <h3>📏 Threshold Visualization</h3>
+                <div class="threshold-scale">
+                    <div class="threshold-marker" style="left: 33%;" title="Status 3/2 boundary"></div>
+                    <div class="threshold-marker" style="left: 66%;" title="Status 2/1 boundary"></div>
+                </div>
+                <div class="threshold-labels">
+                    <span>0 cm (Overflow)</span>
+                    <span>150 cm</span>
+                    <span>250 cm</span>
+                    <span>350 cm (Dry)</span>
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="input-group">
+                    <label>Jarak Sensor ke Air (cm):</label>
+                    <input type="number" id="inputDistance" value="200" min="0" max="350" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Curah Hujan (mm/h):</label>
+                    <input type="number" id="inputRainfall" value="0" min="0" max="50" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Perubahan Jarak (cm/h):</label>
+                    <input type="number" id="inputTrend" value="0" min="-100" max="100" step="0.1">
+                </div>
+                <div class="input-group">
+                    <button id="predictButton">🔍 Predict Status</button>
+                </div>
+            </div>
+            
+            <div class="feature-viz">
+                <div class="feature-card">
+                    <div class="feature-value" id="currentDistance">-</div>
+                    <div>Current Distance</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-value" id="waterLevel">-</div>
+                    <div>Water Level Status</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-value" id="riskLevel">-</div>
+                    <div>Risk Level</div>
+                </div>
+            </div>
+            
+            <div id="predictionResult" class="prediction-result" style="display:none;"></div>
+            
+            <div id="confidenceSection" style="display:none;">
+                <h3>🎯 Confidence Levels:</h3>
+                <div class="confidence-bars">
+                    <div class="confidence-item">
+                        <div class="confidence-label">Status 1 (Normal)</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill status-1" id="conf1">0%</div>
+                        </div>
+                    </div>
+                    <div class="confidence-item">
+                        <div class="confidence-label">Status 2 (Waspada)</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill status-2" id="conf2">0%</div>
+                        </div>
+                    </div>
+                    <div class="confidence-item">
+                        <div class="confidence-label">Status 3 (Bahaya)</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill status-3" id="conf3">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let model = null;
+        let scaler = null;
+        let rawData = [];
+        let processedData = [];
+
+        // Utility functions
+        function log(message) {
+            const logElement = document.getElementById('dataInfo');
+            logElement.innerHTML += message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function trainingLog(message) {
+            const logElement = document.getElementById('trainingLog');
+            logElement.innerHTML += message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Data normalization
+        function normalizeFeatures(data) {
+            const features = ['distance', 'rainfall', 'distance_change', 'prev_distance'];
+            const scalerInfo = {};
+            
+            features.forEach(feature => {
+                const values = data.map(d => d[feature]).filter(v => !isNaN(v));
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                scalerInfo[feature] = { min, max };
+            });
+            
+            const normalized = data.map(row => {
+                const normalizedRow = { ...row };
+                features.forEach(feature => {
+                    const { min, max } = scalerInfo[feature];
+                    normalizedRow[feature] = max === min ? 0 : (row[feature] - min) / (max - min);
+                });
+                return normalizedRow;
+            });
+            
+            return { normalized, scalerInfo };
+        }
+
+        // File loading
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    if (typeof Papa === 'undefined') {
+                        log('❌ CSV Parser not loaded. Please refresh the page.');
+                        return;
+                    }
+                    
+                    Papa.parse(csv, {
+                        header: false,
+                        dynamicTyping: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            rawData = results.data.map(row => ({
+                                id: row[0],
+                                rainfall: row[1] || 0,
+                                unknown: row[2] || 0,
+                                distance: row[3] || 0,  // Renamed from water_level to distance
+                                timestamp: row[4],
+                                status: row[5] || 1
+                            }));
+                            log(`✅ Loaded ${rawData.length} data points`);
+                        }
+                    });
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Data processing
+        document.getElementById('loadData').addEventListener('click', function() {
+            if (rawData.length === 0) {
+                log('❌ Please load CSV file first');
+                return;
+            }
+
+            log('🔄 Processing data with correct interpretation...');
+            
+            const featureMode = document.getElementById('featureMode').value;
+            processedData = [];
+            
+            for (let i = 1; i < rawData.length; i++) {
+                const current = rawData[i];
+                const prev = rawData[i - 1];
+                
+                // Calculate time gap
+                let timeGap = 2; // default 2 minutes
+                if (current.timestamp && prev.timestamp) {
+                    const currentTime = new Date(current.timestamp);
+                    const prevTime = new Date(prev.timestamp);
+                    timeGap = Math.abs((currentTime - prevTime) / (1000 * 60));
+                }
+                
+                const dataPoint = {
+                    distance: current.distance,
+                    rainfall: current.rainfall,
+                    status: current.status
+                };
+                
+                if (featureMode === 'enhanced') {
+                    dataPoint.distance_change = (prev.distance - current.distance) / Math.max(timeGap/60, 0.1); // cm/hour, positive = water rising
+                    dataPoint.prev_distance = prev.distance;
+                    dataPoint.rainfall_intensity = current.rainfall > 0 ? 1 : 0;
+                    dataPoint.time_gap = Math.min(timeGap, 120); // cap at 2 hours
+                }
+                
+                processedData.push(dataPoint);
+            }
+
+            log(`✅ Processed ${processedData.length} data points`);
+            
+            // Show statistics
+            const statusCounts = {};
+            const distanceByStatus = {};
+            
+            processedData.forEach(row => {
+                statusCounts[row.status] = (statusCounts[row.status] || 0) + 1;
+                if (!distanceByStatus[row.status]) distanceByStatus[row.status] = [];
+                distanceByStatus[row.status].push(row.distance);
+            });
+            
+            log(`📊 Status distribution: ${JSON.stringify(statusCounts)}`);
+            
+            Object.entries(distanceByStatus).forEach(([status, distances]) => {
+                const avg = distances.reduce((a, b) => a + b, 0) / distances.length;
+                log(`📏 Status ${status} average distance: ${avg.toFixed(1)} cm`);
+            });
+        });
+
+        // Model training
+        document.getElementById('trainModel').addEventListener('click', async function() {
+            if (processedData.length === 0) {
+                trainingLog('❌ Please process data first');
+                return;
+            }
+
+            document.getElementById('trainingProgress').style.display = 'block';
+            trainingLog('🚀 Starting neural network training...');
+
+            const architecture = document.getElementById('architecture').value;
+            const learningRate = parseFloat(document.getElementById('learningRate').value);
+            const epochs = parseInt(document.getElementById('epochs').value);
+            const featureMode = document.getElementById('featureMode').value;
+
+            try {
+                // Normalize data
+                const { normalized, scalerInfo } = normalizeFeatures(processedData);
+                scaler = scalerInfo;
+                
+                // Prepare features
+                const features = featureMode === 'enhanced' 
+                    ? ['distance', 'rainfall', 'distance_change', 'prev_distance', 'rainfall_intensity']
+                    : ['distance', 'rainfall'];
+                
+                const X = normalized.map(row => features.map(f => row[f]));
+                const y = normalized.map(row => row.status - 1); // Convert to 0-indexed
+                
+                // Split data
+                const splitIndex = Math.floor(X.length * 0.8);
+                const xTrain = X.slice(0, splitIndex);
+                const yTrain = y.slice(0, splitIndex);
+                const xTest = X.slice(splitIndex);
+                const yTest = y.slice(splitIndex);
+                
+                trainingLog(`📊 Features: ${features.join(', ')}`);
+                trainingLog(`📦 Train: ${xTrain.length}, Test: ${xTest.length}`);
+
+                // Convert to tensors
+                const xTrainTensor = tf.tensor2d(xTrain);
+                const yTrainTensor = tf.oneHot(tf.tensor1d(yTrain, 'int32'), 3);
+                const xTestTensor = tf.tensor2d(xTest);
+                const yTestTensor = tf.oneHot(tf.tensor1d(yTest, 'int32'), 3);
+
+                // Build model based on architecture
+                const layers = [tf.layers.dense({ inputShape: [features.length], units: 16, activation: 'relu' })];
+                
+                if (architecture === 'medium') {
+                    layers.push(tf.layers.dropout({ rate: 0.2 }));
+                    layers.push(tf.layers.dense({ units: 8, activation: 'relu' }));
+                } else if (architecture === 'deep') {
+                    layers.push(tf.layers.dropout({ rate: 0.2 }));
+                    layers.push(tf.layers.dense({ units: 12, activation: 'relu' }));
+                    layers.push(tf.layers.dropout({ rate: 0.1 }));
+                    layers.push(tf.layers.dense({ units: 6, activation: 'relu' }));
+                }
+                
+                layers.push(tf.layers.dense({ units: 3, activation: 'softmax' }));
+
+                model = tf.sequential({ layers });
+
+                model.compile({
+                    optimizer: tf.train.adam(learningRate),
+                    loss: 'categoricalCrossentropy',
+                    metrics: ['accuracy']
+                });
+
+                trainingLog(`🧠 Model: ${features.length} inputs → ${architecture} → 3 outputs`);
+
+                const startTime = Date.now();
+                
+                // Train model
+                await model.fit(xTrainTensor, yTrainTensor, {
+                    epochs: epochs,
+                    batchSize: 32,
+                    validationData: [xTestTensor, yTestTensor],
+                    callbacks: {
+                        onEpochEnd: (epoch, logs) => {
+                            const progress = ((epoch + 1) / epochs) * 100;
+                            document.getElementById('progressFill').style.width = progress + '%';
+                            
+                            if ((epoch + 1) % 20 === 0 || epoch < 5) {
+                                trainingLog(`Epoch ${epoch + 1}/${epochs}: loss=${logs.loss.toFixed(4)}, acc=${logs.acc.toFixed(4)}, val_acc=${logs.val_acc.toFixed(4)}`);
+                            }
+                        }
+                    }
+                });
+
+                const trainingTime = (Date.now() - startTime) / 1000;
+                
+                // Evaluate model
+                const trainEval = model.evaluate(xTrainTensor, yTrainTensor);
+                const testEval = model.evaluate(xTestTensor, yTestTensor);
+                
+                const trainAcc = await trainEval[1].data();
+                const testAcc = await testEval[1].data();
+                const finalLoss = await trainEval[0].data();
+
+                // Update UI
+                document.getElementById('trainAccuracy').textContent = (trainAcc[0] * 100).toFixed(1) + '%';
+                document.getElementById('testAccuracy').textContent = (testAcc[0] * 100).toFixed(1) + '%';
+                document.getElementById('finalLoss').textContent = finalLoss[0].toFixed(4);
+                document.getElementById('trainingTime').textContent = trainingTime.toFixed(1);
+
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('predictionSection').style.display = 'block';
+
+                trainingLog(`✅ Training completed in ${trainingTime.toFixed(1)}s`);
+                trainingLog(`🎯 Test Accuracy: ${(testAcc[0] * 100).toFixed(1)}%`);
+
+                // Cleanup tensors
+                xTrainTensor.dispose();
+                yTrainTensor.dispose();
+                xTestTensor.dispose();
+                yTestTensor.dispose();
+                trainEval[0].dispose();
+                trainEval[1].dispose();
+                testEval[0].dispose();
+                testEval[1].dispose();
+
+            } catch (error) {
+                trainingLog(`❌ Training error: ${error.message}`);
+                console.error('Training error:', error);
+            }
+        });
+
+        // Prediction
+        document.getElementById('predictButton').addEventListener('click', async function() {
+            if (!model || !scaler) {
+                alert('Please train the model first');
+                return;
+            }
+
+            const distance = parseFloat(document.getElementById('inputDistance').value);
+            const rainfall = parseFloat(document.getElementById('inputRainfall').value);
+            const distanceChange = parseFloat(document.getElementById('inputTrend').value);
+            const featureMode = document.getElementById('featureMode').value;
+            
+            // Update feature visualization
+            document.getElementById('currentDistance').textContent = distance.toFixed(1) + ' cm';
+            
+            let waterLevelStatus, riskLevel;
+            if (distance > 260) {
+                waterLevelStatus = 'LOW';
+                riskLevel = 'SAFE';
+            } else if (distance > 180) {
+                waterLevelStatus = 'MEDIUM';
+                riskLevel = 'WATCH';
+            } else {
+                waterLevelStatus = 'HIGH';
+                riskLevel = 'DANGER';
+            }
+            
+            document.getElementById('waterLevel').textContent = waterLevelStatus;
+            document.getElementById('riskLevel').textContent = riskLevel;
+            
+            // Prepare input features
+            const features = featureMode === 'enhanced' 
+                ? ['distance', 'rainfall', 'distance_change', 'prev_distance', 'rainfall_intensity']
+                : ['distance', 'rainfall'];
+            
+            const inputData = {
+                distance: distance,
+                rainfall: rainfall,
+                distance_change: distanceChange,
+                prev_distance: distance + distanceChange, // approximate
+                rainfall_intensity: rainfall > 0 ? 1 : 0
+            };
+            
+            // Normalize input
+            const normalizedInput = features.map(feature => {
+                const { min, max } = scaler[feature];
+                return max === min ? 0 : (inputData[feature] - min) / (max - min);
+            });
+
+            const inputTensor = tf.tensor2d([normalizedInput]);
+            const prediction = model.predict(inputTensor);
+            const probabilities = await prediction.data();
+            
+            const maxIndex = probabilities.indexOf(Math.max(...probabilities));
+            const predictedStatus = maxIndex + 1;
+            
+            const statusNames = ['Normal/Aman', 'Waspada', 'Bahaya'];
+            const statusColors = ['status-1', 'status-2', 'status-3'];
+            const statusIcons = ['🟢', '🟡', '🔴'];
+            
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.className = `prediction-result ${statusColors[maxIndex]}`;
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                ${statusIcons[maxIndex]} <strong>Status ${predictedStatus} - ${statusNames[maxIndex]}</strong><br>
+                Confidence: ${(probabilities[maxIndex] * 100).toFixed(1)}%<br>
+                <small>Jarak: ${distance}cm | Hujan: ${rainfall}mm/h | Trend: ${distanceChange > 0 ? '📈' : distanceChange < 0 ? '📉' : '➡️'} ${Math.abs(distanceChange).toFixed(1)}cm/h</small>
+            `;
+            
+            // Show confidence bars
+            document.getElementById('confidenceSection').style.display = 'block';
+            
+            statusNames.forEach((name, i) => {
+                const confidence = probabilities[i] * 100;
+                const confElement = document.getElementById(`conf${i + 1}`);
+                confElement.style.width = confidence + '%';
+                confElement.textContent = confidence.toFixed(1) + '%';
+            });
+            
+            // Add interpretation
+            let interpretation = '';
+            if (predictedStatus === 1) {
+                interpretation = '✅ Kondisi normal. Air masih dalam batas aman.';
+            } else if (predictedStatus === 2) {
+                interpretation = '⚠️ Kondisi waspada. Perhatikan perkembangan cuaca dan siapkan mitigasi.';
+            } else {
+                interpretation = '🚨 Kondisi bahaya! Air tinggi, segera lakukan evakuasi jika diperlukan.';
+            }
+            
+            resultDiv.innerHTML += `<br><small style="font-style: italic;">${interpretation}</small>`;
+            
+            inputTensor.dispose();
+            prediction.dispose();
+        });
+
+        // Real-time input updates
+        document.getElementById('inputDistance').addEventListener('input', function() {
+            updateThresholdMarker();
+        });
+
+        function updateThresholdMarker() {
+            const distance = parseFloat(document.getElementById('inputDistance').value);
+            // Update threshold visualization marker based on current input
+            // This is a simple visual feedback for user
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            function checkLibraries() {
+                if (typeof tf !== 'undefined' && typeof Papa !== 'undefined') {
+                    log('🚀 Simple & Accurate Flood Detection System Ready');
+                    log('💡 Key Insight: Lower distance = Higher water level = More danger');
+                    log('📁 Please upload your CSV file to begin');
+                    log('📚 Libraries loaded: TensorFlow.js ✅, PapaParse ✅');
+                } else {
+                    log('⏳ Loading libraries...');
+                    setTimeout(checkLibraries, 1000);
+                }
+            }
+            checkLibraries();
+        });
+
+        // Additional helper functions for better UX
+        function getStatusRecommendation(distance, rainfall, trend) {
+            let recommendation = '';
+            
+            if (distance < 100) {
+                recommendation = '🚨 CRITICAL: Immediate evacuation may be needed!';
+            } else if (distance < 150 && rainfall > 10) {
+                recommendation = '⚠️ HIGH RISK: Heavy rain with high water level detected';
+            } else if (distance < 200 && trend < -10) {
+                recommendation = '📉 RISING FAST: Water level rising rapidly';
+            } else if (distance > 280) {
+                recommendation = '✅ SAFE: Normal water level, continue monitoring';
+            } else {
+                recommendation = '👀 MONITOR: Keep watching for changes';
+            }
+            
+            return recommendation;
+        }
+
+        // Auto-update prediction when inputs change (debounced)
+        let predictionTimeout;
+        ['inputDistance', 'inputRainfall', 'inputTrend'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                clearTimeout(predictionTimeout);
+                predictionTimeout = setTimeout(() => {
+                    if (model && scaler) {
+                        document.getElementById('predictButton').click();
+                    }
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
