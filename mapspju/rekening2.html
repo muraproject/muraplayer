@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLN Data Analyzer - Analisis per IDPEL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background-color: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .sort-select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .data-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        th, td {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            border-right: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+        }
+        
+        th:hover {
+            background: #e9ecef;
+        }
+        
+        .sortable::after {
+            content: ' ↕️';
+            font-size: 0.8rem;
+        }
+        
+        .sorted-asc::after {
+            content: ' ▲';
+            color: #667eea;
+        }
+        
+        .sorted-desc::after {
+            content: ' ▼';
+            color: #667eea;
+        }
+        
+        .month-cell {
+            position: relative;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .ptl-value {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        
+        .kwh-value {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .change-indicator {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        
+        .cell-increase {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .cell-decrease {
+            background-color: rgba(40, 167, 69, 0.1) !important;
+            border-left: 3px solid #28a745;
+        }
+        
+        .cell-significant-increase {
+            background-color: rgba(220, 53, 69, 0.2) !important;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .cell-significant-decrease {
+            background-color: rgba(40, 167, 69, 0.2) !important;
+            border-left: 4px solid #28a745;
+        }
+        
+        .cell-stable {
+            background-color: rgba(108, 117, 125, 0.05) !important;
+        }
+        
+        .cell-first {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+            border-left: 3px solid #667eea;
+        }
+        
+        .increase {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .decrease {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .stable {
+            color: #6c757d;
+        }
+        
+        .highlight-high {
+            background-color: #fff3cd !important;
+        }
+        
+        .highlight-critical {
+            background-color: #f8d7da !important;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+        
+        .export-btn:hover {
+            background: #218838;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .legend {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-sample {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input, .sort-select {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+            
+            .month-cell {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 PLN Data Analyzer</h1>
+            <p>Analisis Tagihan Penerangan Jalan Umum per IDPEL dengan Indikator Bulanan</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-text">🗁 Klik atau Drag & Drop File Excel PLN</div>
+                <p>Pilih multiple file untuk perbandingan bulanan</p>
+                <input type="file" id="fileInput" multiple accept=".xlsx,.xls" />
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div>⏳ Memproses data...</div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <div class="controls">
+                <div class="control-row">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Cari IDPEL, Nama, atau Alamat...">
+                    <select class="sort-select" id="sortSelect">
+                        <option value="change_desc">Urutkan: Perubahan Terbesar</option>
+                        <option value="change_asc">Urutkan: Perubahan Terkecil</option>
+                        <option value="nama_asc">Urutkan: Nama A-Z</option>
+                        <option value="nama_desc">Urutkan: Nama Z-A</option>
+                        <option value="idpel_asc">Urutkan: IDPEL A-Z</option>
+                        <option value="ptl_desc">Urutkan: PTL Tertinggi</option>
+                        <option value="kwh_desc">Urutkan: KWH Tertinggi</option>
+                    </select>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Semua</button>
+                    <button class="filter-btn" data-filter="increase">Naik Signifikan</button>
+                    <button class="filter-btn" data-filter="decrease">Turun Signifikan</button>
+                    <button class="filter-btn" data-filter="stable">Stabil</button>
+                    <button class="filter-btn" data-filter="new">Pelanggan Baru</button>
+                    <button class="filter-btn" data-filter="volatile">Fluktuatif</button>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h2 class="section-title">📈 Grafik Tren Total Konsumsi</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <h2 class="section-title">📋 Tabel Perbandingan per IDPEL</h2>
+                
+                <div class="legend">
+                    <strong>📖 Keterangan Indikator Perubahan:</strong>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <span class="legend-sample cell-significant-increase">⬆️ +15%</span>
+                            <span>Naik Signifikan</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-sample cell-increase">↗️ +5%</span>
+                            <span>Naik</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-sample cell-stable">➡️ ±3%</span>
+                            <span>Stabil</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-sample cell-decrease">↘️ -5%</span>
+                            <span>Turun</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-sample cell-significant-decrease">⬇️ -15%</span>
+                            <span>Turun Signifikan</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-sample cell-first">🆕</span>
+                            <span>Bulan Pertama</span>
+                        </div>
+                    </div>
+                    <p style="margin-top: 10px; font-style: italic; color: #666;">
+                        💡 Format: <strong>PTL (atas)</strong> - KWH (tengah) - Perubahan% (bawah)
+                    </p>
+                </div>
+                
+                <div class="table-container">
+                    <table id="comparisonTable"></table>
+                </div>
+                <button class="export-btn" onclick="exportToCSV()">📥 Export ke CSV</button>
+            </div>
+
+            <div class="data-section">
+                <h2 class="section-title">🎯 Top 10 Perubahan Terbesar</h2>
+                <div class="chart-container">
+                    <canvas id="topChangesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let processedData = [];
+        let currentFilter = 'all';
+        let currentSort = 'change_desc';
+        let trendChart = null;
+        let topChangesChart = null;
+
+        // File handling
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.querySelector('.upload-area');
+        const fileList = document.getElementById('fileList');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        fileInput.addEventListener('change', handleFiles);
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles({ target: { files: e.dataTransfer.files } });
+        });
+
+        async function handleFiles(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            // Show file list
+            fileList.style.display = 'block';
+            fileList.innerHTML = '<h3>File yang akan diproses:</h3>';
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.textContent = `📄 ${file.name}`;
+                fileList.appendChild(fileItem);
+            });
+
+            try {
+                allData = {};
+                for (const file of files) {
+                    await processFile(file);
+                }
+                
+                processedData = processAllData();
+                displayResults();
+                
+            } catch (error) {
+                alert('Error memproses file: ' + error.message);
+                console.error(error);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function processFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                        
+                        // Determine which sheet to use
+                        let sheetName = workbook.SheetNames[0];
+                        if (workbook.SheetNames.includes('PJUKAB-DPKP KAB')) {
+                            sheetName = 'PJUKAB-DPKP KAB';
+                        }
+                        
+                        const worksheet = workbook.Sheets[sheetName];
+                        
+                        // Convert to JSON, starting from row that contains headers
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                            header: 1,
+                            defval: ''
+                        });
+                        
+                        // Find header row (contains "NO.", "IDPEL", etc.)
+                        let headerRowIndex = -1;
+                        for (let i = 0; i < Math.min(15, jsonData.length); i++) {
+                            const row = jsonData[i];
+                            if (row && row.some(cell => 
+                                String(cell).toLowerCase().includes('idpel') || 
+                                String(cell).toLowerCase().includes('no.')
+                            )) {
+                                headerRowIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        if (headerRowIndex === -1) {
+                            throw new Error(`Header tidak ditemukan di file ${file.name}`);
+                        }
+                        
+                        // Extract month from filename
+                        const monthMatch = file.name.match(/(JANUARI|FEBRUARI|MARET|APRIL|MEI|JUNI|JULI|AGUSTUS|SEPTEMBER|OKTOBER|NOVEMBER|DESEMBER|JAN|FEB|MAR|APR|MEI|JUN|JUL|AGU|SEP|OKT|NOV|DES)\s*(\d{4})/i);
+                        let monthYear = 'Unknown';
+                        let sortKey = '9999-12';
+                        
+                        if (monthMatch) {
+                            const monthNumbers = {
+                                'JANUARI': 1, 'FEBRUARI': 2, 'MARET': 3, 'APRIL': 4,
+                                'MEI': 5, 'JUNI': 6, 'JULI': 7, 'AGUSTUS': 8,
+                                'SEPTEMBER': 9, 'OKTOBER': 10, 'NOVEMBER': 11, 'DESEMBER': 12,
+                                'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4,
+                                'JUN': 6, 'JUL': 7, 'AGU': 8, 'SEP': 9,
+                                'OKT': 10, 'NOV': 11, 'DES': 12
+                            };
+                            
+                            const monthNames = {
+                                'JANUARI': 'Jan', 'FEBRUARI': 'Feb', 'MARET': 'Mar', 'APRIL': 'Apr',
+                                'MEI': 'May', 'JUNI': 'Jun', 'JULI': 'Jul', 'AGUSTUS': 'Aug',
+                                'SEPTEMBER': 'Sep', 'OKTOBER': 'Oct', 'NOVEMBER': 'Nov', 'DESEMBER': 'Dec',
+                                'JAN': 'Jan', 'FEB': 'Feb', 'MAR': 'Mar', 'APR': 'Apr',
+                                'JUN': 'Jun', 'JUL': 'Jul', 'AGU': 'Aug', 'SEP': 'Sep',
+                                'OKT': 'Oct', 'NOV': 'Nov', 'DES': 'Dec'
+                            };
+                            
+                            const monthNum = monthNumbers[monthMatch[1].toUpperCase()];
+                            const year = monthMatch[2];
+                            sortKey = `${year}-${monthNum.toString().padStart(2, '0')}`;
+                            monthYear = `${monthNames[monthMatch[1].toUpperCase()] || monthMatch[1]} ${year}`;
+                        }
+                        
+                        // Process data rows
+                        const dataRows = jsonData.slice(headerRowIndex + 1);
+                        const monthData = [];
+                        
+                        for (const row of dataRows) {
+                            if (!row || row.length < 3) continue;
+                            
+                            const idpel = String(row[1] || '').trim();
+                            if (!idpel || idpel === '' || /^[0-9]+$/.test(idpel) === false) continue;
+                            
+                            const record = {
+                                no: row[0],
+                                idpel: idpel,
+                                nama: String(row[2] || '').trim(),
+                                kode: String(row[3] || '').trim(),
+                                alamat: String(row[4] || '').trim(),
+                                tarif: String(row[5] || '').trim(),
+                                daya: parseFloat(row[6]) || 0,
+                                blth: String(row[7] || '').trim(),
+                                norek: String(row[8] || '').trim(),
+                                standAwal: parseFloat(row[9]) || 0,
+                                standAkhir: parseFloat(row[10]) || 0,
+                                kwh: parseFloat(row[11]) || 0,
+                                ptl: parseFloat(row[12]) || 0,
+                                angsuran: parseFloat(row[13]) || 0,
+                                ppn: parseFloat(row[14]) || 0
+                            };
+                            
+                            if (record.ptl > 0) {
+                                monthData.push(record);
+                            }
+                        }
+                        
+                        allData[monthYear] = {
+                            data: monthData,
+                            sortKey: sortKey,
+                            filename: file.name,
+                            display: monthYear
+                        };
+                        resolve();
+                        
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Error reading file'));
+                reader.readAsBinaryString(file);
+            });
+        }
+
+        function processAllData() {
+            // Sort months chronologically
+            const monthEntries = Object.entries(allData).sort((a, b) => 
+                a[1].sortKey.localeCompare(b[1].sortKey)
+            );
+            
+            const months = monthEntries.map(([display]) => display);
+            const customerMap = new Map();
+            
+            // Build customer map across all months
+            months.forEach(month => {
+                allData[month].data.forEach(record => {
+                    if (!customerMap.has(record.idpel)) {
+                        customerMap.set(record.idpel, {
+                            idpel: record.idpel,
+                            nama: record.nama,
+                            alamat: record.alamat,
+                            tarif: record.tarif,
+                            daya: record.daya,
+                            months: {},
+                            monthlyChanges: {}
+                        });
+                    }
+                    
+                    customerMap.get(record.idpel).months[month] = {
+                        kwh: record.kwh,
+                        ptl: record.ptl,
+                        standAwal: record.standAwal,
+                        standAkhir: record.standAkhir
+                    };
+                });
+            });
+            
+            // Calculate month-over-month changes
+            customerMap.forEach((customer, idpel) => {
+                const monthKeys = months.filter(m => customer.months[m]);
+                
+                monthKeys.forEach((month, index) => {
+                    if (index === 0) {
+                        customer.monthlyChanges[month] = {
+                            changePercent: 0,
+                            changeAmount: 0,
+                            trend: 'first'
+                        };
+                    } else {
+                        const currentMonth = customer.months[month];
+                        const prevMonth = customer.months[monthKeys[index - 1]];
+                        
+                        const changeAmount = currentMonth.ptl - prevMonth.ptl;
+                        const changePercent = prevMonth.ptl !== 0 ? ((changeAmount / prevMonth.ptl) * 100) : 0;
+                        
+                        let trend = 'stable';
+                        if (Math.abs(changePercent) < 3) {
+                            trend = 'stable';
+                        } else if (changePercent > 15) {
+                            trend = 'significant_increase';
+                        } else if (changePercent < -15) {
+                            trend = 'significant_decrease';
+                        } else if (changePercent > 0) {
+                            trend = 'increase';
+                        } else {
+                            trend = 'decrease';
+                        }
+                        
+                        customer.monthlyChanges[month] = {
+                            changePercent: changePercent,
+                            changeAmount: changeAmount,
+                            trend: trend
+                        };
+                    }
+                });
+            });
+            
+            // Calculate overall trends
+            const processedCustomers = [];
+            customerMap.forEach((customer, idpel) => {
+                const monthKeys = months.filter(m => customer.months[m]);
+                if (monthKeys.length === 0) return;
+                
+                const processed = {
+                    ...customer,
+                    monthKeys: monthKeys,
+                    totalMonths: monthKeys.length,
+                    avgKwh: 0,
+                    avgPtl: 0,
+                    trend: 'stable',
+                    changePercent: 0,
+                    changeAmount: 0,
+                    latestPtl: 0,
+                    latestKwh: 0
+                };
+                
+                // Calculate averages and latest values
+                let totalKwh = 0;
+                let totalPtl = 0;
+                monthKeys.forEach(month => {
+                    totalKwh += customer.months[month].kwh;
+                    totalPtl += customer.months[month].ptl;
+                });
+                
+                processed.avgKwh = totalKwh / monthKeys.length;
+                processed.avgPtl = totalPtl / monthKeys.length;
+                
+                // Get latest month values
+                const latestMonth = monthKeys[monthKeys.length - 1];
+                processed.latestPtl = customer.months[latestMonth].ptl;
+                processed.latestKwh = customer.months[latestMonth].kwh;
+                
+                // Calculate overall trend
+                if (monthKeys.length >= 2) {
+                    const firstMonth = customer.months[monthKeys[0]];
+                    const lastMonth = customer.months[monthKeys[monthKeys.length - 1]];
+                    
+                    processed.changeAmount = lastMonth.ptl - firstMonth.ptl;
+                    processed.changePercent = ((lastMonth.ptl - firstMonth.ptl) / firstMonth.ptl) * 100;
+                    
+                    if (Math.abs(processed.changePercent) < 5) {
+                        processed.trend = 'stable';
+                    } else if (processed.changePercent > 15) {
+                        processed.trend = 'increase';
+                    } else if (processed.changePercent < -15) {
+                        processed.trend = 'decrease';
+                    } else if (processed.changePercent > 5) {
+                        processed.trend = 'slight_increase';
+                    } else {
+                        processed.trend = 'slight_decrease';
+                    }
+                    
+                    // Check volatility
+                    const volatileCount = Object.values(customer.monthlyChanges).filter(change => 
+                        change.trend === 'significant_increase' || 
+                        change.trend === 'significant_decrease' ||
+                        Math.abs(change.changePercent) > 20
+                    ).length;
+                    
+                    if (volatileCount >= 2) {
+                        processed.isVolatile = true;
+                    }
+                } else {
+                    processed.trend = 'new';
+                }
+                
+                processedCustomers.push(processed);
+            });
+            
+            return processedCustomers;
+        }
+
+        function displayResults() {
+            results.style.display = 'block';
+            
+            displayStats();
+            displayTrendChart();
+            displayComparisonTable();
+            displayTopChangesChart();
+            setupControls();
+        }
+
+        function displayStats() {
+            const monthEntries = Object.entries(allData).sort((a, b) => 
+                a[1].sortKey.localeCompare(b[1].sortKey)
+            );
+            const months = monthEntries.map(([display]) => display);
+            const statsGrid = document.getElementById('statsGrid');
+            
+            let totalCustomers = 0;
+            let totalKwh = 0;
+            let totalPtl = 0;
+            let increaseCount = 0;
+            let decreaseCount = 0;
+            let volatileCount = 0;
+            
+            processedData.forEach(customer => {
+                totalCustomers++;
+                totalKwh += customer.latestKwh;
+                totalPtl += customer.latestPtl;
+                
+                if (customer.trend === 'increase') increaseCount++;
+                if (customer.trend === 'decrease') decreaseCount++;
+                if (customer.isVolatile) volatileCount++;
+            });
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalCustomers.toLocaleString()}</div>
+                    <div class="stat-label">Total Pelanggan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${months.length}</div>
+                    <div class="stat-label">Bulan Data</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">Rp ${(totalPtl / 1000000).toFixed(1)}M</div>
+                    <div class="stat-label">Total PTL</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(totalKwh / 1000).toFixed(1)}K</div>
+                    <div class="stat-label">Total KWH</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value increase">${increaseCount}</div>
+                    <div class="stat-label">Naik Signifikan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value decrease">${decreaseCount}</div>
+                    <div class="stat-label">Turun Signifikan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #fd7e14;">${volatileCount}</div>
+                    <div class="stat-label">Fluktuatif</div>
+                </div>
+            `;
+        }
+
+        function displayTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            const monthEntries = Object.entries(allData).sort((a, b) => 
+                a[1].sortKey.localeCompare(b[1].sortKey)
+            );
+            const months = monthEntries.map(([display]) => display);
+            
+            const kwhData = months.map(month => {
+                return allData[month].data.reduce((sum, record) => sum + record.kwh, 0);
+            });
+            
+            const ptlData = months.map(month => {
+                return allData[month].data.reduce((sum, record) => sum + record.ptl, 0) / 1000000;
+            });
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'KWH (000)',
+                        data: kwhData.map(v => v / 1000),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Revenue (Juta Rp)',
+                        data: ptlData,
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'KWH (000)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Revenue (Juta Rp)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayComparisonTable() {
+            const table = document.getElementById('comparisonTable');
+            
+            const monthEntries = Object.entries(allData).sort((a, b) => 
+                a[1].sortKey.localeCompare(b[1].sortKey)
+            );
+            const months = monthEntries.map(([display]) => display);
+            
+            let tableHTML = '<thead><tr>';
+            tableHTML += '<th class="sortable" data-sort="idpel">IDPEL</th>';
+            tableHTML += '<th class="sortable" data-sort="nama">Nama</th>';
+            tableHTML += '<th class="sortable" data-sort="alamat">Alamat</th>';
+            tableHTML += '<th class="sortable" data-sort="daya">Daya</th>';
+            
+            months.forEach(month => {
+                tableHTML += `<th>${month}</th>`;
+            });
+            
+            tableHTML += '<th class="sortable" data-sort="trend">Trend</th>';
+            tableHTML += '<th class="sortable" data-sort="change">Perubahan</th></tr></thead><tbody>';
+            
+            const filteredData = getFilteredData();
+            
+            filteredData.forEach(customer => {
+                let rowClass = '';
+                if (customer.trend === 'increase') rowClass = 'highlight-critical';
+                else if (customer.trend === 'decrease') rowClass = 'highlight-high';
+                
+                tableHTML += `<tr class="${rowClass}">`;
+                tableHTML += `<td>${customer.idpel}</td>`;
+                tableHTML += `<td style="text-align: left;">${customer.nama}</td>`;
+                tableHTML += `<td style="text-align: left;">${customer.alamat}</td>`;
+                tableHTML += `<td>${customer.daya.toLocaleString()}</td>`;
+                
+                months.forEach((month, monthIndex) => {
+                    if (customer.months[month]) {
+                        const data = customer.months[month];
+                        const monthChange = customer.monthlyChanges[month];
+                        
+                        let cellClass = '';
+                        let changeIcon = '';
+                        let changeText = '';
+                        
+                        if (monthChange) {
+                            switch (monthChange.trend) {
+                                case 'first':
+                                    cellClass = 'cell-first';
+                                    changeIcon = '🆕';
+                                    changeText = 'Pertama';
+                                    break;
+                                case 'significant_increase':
+                                    cellClass = 'cell-significant-increase';
+                                    changeIcon = '⬆️';
+                                    changeText = `+${monthChange.changePercent.toFixed(1)}%`;
+                                    break;
+                                case 'significant_decrease':
+                                    cellClass = 'cell-significant-decrease';
+                                    changeIcon = '⬇️';
+                                    changeText = `${monthChange.changePercent.toFixed(1)}%`;
+                                    break;
+                                case 'increase':
+                                    cellClass = 'cell-increase';
+                                    changeIcon = '↗️';
+                                    changeText = `+${monthChange.changePercent.toFixed(1)}%`;
+                                    break;
+                                case 'decrease':
+                                    cellClass = 'cell-decrease';
+                                    changeIcon = '↘️';
+                                    changeText = `${monthChange.changePercent.toFixed(1)}%`;
+                                    break;
+                                case 'stable':
+                                    cellClass = 'cell-stable';
+                                    changeIcon = '➡️';
+                                    changeText = `±${Math.abs(monthChange.changePercent).toFixed(1)}%`;
+                                    break;
+                            }
+                        }
+                        
+                        tableHTML += `<td class="month-cell ${cellClass}">`;
+                        tableHTML += `<div class="ptl-value">Rp ${data.ptl.toLocaleString()}</div>`;
+                        tableHTML += `<div class="kwh-value">${data.kwh.toLocaleString()} KWH</div>`;
+                        if (monthChange) {
+                            tableHTML += `<div class="change-indicator">`;
+                            tableHTML += `<span>${changeIcon}</span>`;
+                            tableHTML += `<span>${changeText}</span>`;
+                            tableHTML += `</div>`;
+                        }
+                        tableHTML += `</td>`;
+                    } else {
+                        tableHTML += '<td>-</td>';
+                    }
+                });
+                
+                const trendIcon = {
+                    'increase': '📈',
+                    'decrease': '📉',
+                    'stable': '➡️',
+                    'new': '🆕',
+                    'slight_increase': '↗️',
+                    'slight_decrease': '↘️'
+                };
+                
+                tableHTML += `<td>${trendIcon[customer.trend] || '➡️'}</td>`;
+                
+                let changeClass = '';
+                if (customer.changePercent > 0) changeClass = 'increase';
+                else if (customer.changePercent < 0) changeClass = 'decrease';
+                else changeClass = 'stable';
+                
+                tableHTML += `<td class="${changeClass}">`;
+                if (customer.changePercent !== 0) {
+                    tableHTML += `${customer.changePercent > 0 ? '+' : ''}${customer.changePercent.toFixed(1)}%<br>`;
+                    tableHTML += `Rp ${customer.changeAmount.toLocaleString()}`;
+                } else {
+                    tableHTML += 'No change';
+                }
+                tableHTML += '</td>';
+                
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody>';
+            table.innerHTML = tableHTML;
+            
+            // Add click handlers for sorting
+            document.querySelectorAll('.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortType = th.dataset.sort;
+                    currentSort = currentSort === sortType + '_asc' ? sortType + '_desc' : sortType + '_asc';
+                    
+                    document.querySelectorAll('.sortable').forEach(header => {
+                        header.classList.remove('sorted-asc', 'sorted-desc');
+                    });
+                    
+                    th.classList.add(currentSort.endsWith('_asc') ? 'sorted-asc' : 'sorted-desc');
+                    
+                    displayComparisonTable();
+                });
+            });
+        }
+
+        function displayTopChangesChart() {
+            const ctx = document.getElementById('topChangesChart').getContext('2d');
+            
+            const increases = processedData
+                .filter(c => c.changePercent > 0)
+                .sort((a, b) => b.changePercent - a.changePercent)
+                .slice(0, 5);
+                
+            const decreases = processedData
+                .filter(c => c.changePercent < 0)
+                .sort((a, b) => a.changePercent - b.changePercent)
+                .slice(0, 5);
+            
+            const combined = [...decreases.reverse(), ...increases];
+            
+            if (topChangesChart) {
+                topChangesChart.destroy();
+            }
+            
+            topChangesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: combined.map(c => `${c.nama.substring(0, 20)}...`),
+                    datasets: [{
+                        label: 'Perubahan (%)',
+                        data: combined.map(c => c.changePercent),
+                        backgroundColor: combined.map(c => 
+                            c.changePercent > 0 ? 'rgba(220, 53, 69, 0.8)' : 'rgba(40, 167, 69, 0.8)'
+                        ),
+                        borderColor: combined.map(c => 
+                            c.changePercent > 0 ? '#dc3545' : '#28a745'
+                        ),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Perubahan (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupControls() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', () => {
+                displayComparisonTable();
+            });
+            
+            // Sort functionality
+            const sortSelect = document.getElementById('sortSelect');
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                displayComparisonTable();
+            });
+            
+            // Filter buttons
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    displayComparisonTable();
+                });
+            });
+        }
+
+        function getFilteredData() {
+            let filtered = [...processedData];
+            
+            // Apply filter
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(customer => {
+                    switch (currentFilter) {
+                        case 'increase':
+                            return customer.trend === 'increase';
+                        case 'decrease':
+                            return customer.trend === 'decrease';
+                        case 'stable':
+                            return customer.trend === 'stable';
+                        case 'new':
+                            return customer.trend === 'new';
+                        case 'volatile':
+                            return customer.isVolatile;
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            // Apply search
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(customer =>
+                    customer.idpel.toLowerCase().includes(searchTerm) ||
+                    customer.nama.toLowerCase().includes(searchTerm) ||
+                    customer.alamat.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply sorting
+            filtered.sort((a, b) => {
+                switch (currentSort) {
+                    case 'change_desc':
+                        return Math.abs(b.changePercent) - Math.abs(a.changePercent);
+                    case 'change_asc':
+                        return Math.abs(a.changePercent) - Math.abs(b.changePercent);
+                    case 'nama_asc':
+                        return a.nama.localeCompare(b.nama);
+                    case 'nama_desc':
+                        return b.nama.localeCompare(a.nama);
+                    case 'idpel_asc':
+                        return a.idpel.localeCompare(b.idpel);
+                    case 'ptl_desc':
+                        return b.latestPtl - a.latestPtl;
+                    case 'kwh_desc':
+                        return b.latestKwh - a.latestKwh;
+                    case 'daya_desc':
+                        return b.daya - a.daya;
+                    case 'trend_asc':
+                        return a.trend.localeCompare(b.trend);
+                    default:
+                        return 0;
+                }
+            });
+            
+            return filtered;
+        }
+
+        function exportToCSV() {
+            const filtered = getFilteredData();
+            
+            const monthEntries = Object.entries(allData).sort((a, b) => 
+                a[1].sortKey.localeCompare(b[1].sortKey)
+            );
+            const months = monthEntries.map(([display]) => display);
+            
+            let csv = 'IDPEL,Nama,Alamat,Daya,';
+            months.forEach(month => {
+                csv += `${month}_PTL,${month}_KWH,${month}_Change_%,${month}_Trend,`;
+            });
+            csv += 'Overall_Trend,Total_Change_%,Total_Change_Amount,Is_Volatile\n';
+            
+            filtered.forEach(customer => {
+                csv += `"${customer.idpel}","${customer.nama}","${customer.alamat}",${customer.daya},`;
+                
+                months.forEach(month => {
+                    if (customer.months[month]) {
+                        const data = customer.months[month];
+                        const change = customer.monthlyChanges[month];
+                        csv += `${data.ptl},${data.kwh},`;
+                        if (change) {
+                            csv += `${change.changePercent.toFixed(2)},"${change.trend}",`;
+                        } else {
+                            csv += '0,"none",';
+                        }
+                    } else {
+                        csv += '0,0,0,"none",';
+                    }
+                });
+                
+                csv += `"${customer.trend}",${customer.changePercent.toFixed(2)},${customer.changeAmount},"${customer.isVolatile || false}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PLN_Monthly_Analysis_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
