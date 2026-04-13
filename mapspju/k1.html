@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Infrastruktur Jalan Kabupaten</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 380px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-input {
+            margin: 10px 0;
+        }
+
+        .file-input input[type="file"] {
+            display: none;
+        }
+
+        .file-input label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .file-input label:hover {
+            background: #5a6fd8;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .filter-controls {
+            margin-bottom: 15px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.show-all {
+            background: #28a745;
+            color: white;
+        }
+
+        .filter-btn.hide-all {
+            background: #dc3545;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            opacity: 0.8;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .filter-item:hover {
+            background: #f8f9fa;
+        }
+
+        .filter-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .filter-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .filter-label {
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .filter-count {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #6c6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .hidden-category {
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Peta Infrastruktur Jalan Kabupaten</h1>
+        <p>Visualisasi data jaringan dan penerangan jalan berdasarkan file KML</p>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="upload-section">
+                <h3>📁 Upload File KML</h3>
+                <p>Pilih file Jalan_Kabupaten.kml untuk memuat data</p>
+                <div class="file-input">
+                    <label for="kmlFile">Pilih File KML</label>
+                    <input type="file" id="kmlFile" accept=".kml" />
+                </div>
+                <div class="loading">
+                    <p>⏳ Memuat data...</p>
+                </div>
+                <div class="error" id="errorMessage"></div>
+                <div class="success" id="successMessage"></div>
+            </div>
+
+            <div class="section" id="filterSection" style="display: none;">
+                <h3>🔍 Filter Berdasarkan Status Lampu</h3>
+                <div class="filter-controls">
+                    <div class="filter-buttons">
+                        <button class="filter-btn show-all" onclick="showAllCategories()">Tampilkan Semua</button>
+                        <button class="filter-btn hide-all" onclick="hideAllCategories()">Sembunyikan Semua</button>
+                    </div>
+                    <div id="filterList">
+                        <!-- Filter items akan diisi dinamis -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🎨 Legenda Dinamis</h3>
+                <div id="legendList">
+                    <p style="color: #666; font-style: italic;">Upload file KML untuk melihat legenda</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📊 Statistik Data</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Total Jalan:</span>
+                    <span class="stat-value" id="totalRoads">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Kategori Unik:</span>
+                    <span class="stat-value" id="uniqueCategories">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Jalan Tampil:</span>
+                    <span class="stat-value" id="visibleRoads">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Cakupan Area:</span>
+                    <span class="stat-value" id="areaInfo">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // Inisialisasi peta
+        const map = L.map('map').setView([-7.8, 112.1], 10);
+
+        // Tambahkan tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Layer group untuk jalan
+        const roadsLayer = L.layerGroup().addTo(map);
+
+        // Variabel global
+        let lampuCategories = new Map(); // Map untuk menyimpan kategori lampu dan data jalan
+        let colorPalette = [
+            '#0288D1', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', 
+            '#2196F3', '#03DAC6', '#4CAF50', '#8BC34A', '#CDDC39',
+            '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548',
+            '#607D8B', '#E65100', '#BF360C', '#1B5E20', '#004D40'
+        ];
+        let roadStats = {
+            total: 0,
+            visible: 0,
+            bounds: null
+        };
+
+        // Fungsi untuk mendapatkan warna berdasarkan kategori
+        function getCategoryColor(category, index) {
+            return colorPalette[index % colorPalette.length];
+        }
+
+        // Fungsi untuk parse koordinat
+        function parseCoordinates(coordString) {
+            const coords = coordString.trim().split(/\s+/);
+            const latLngs = [];
+            
+            for (let i = 0; i < coords.length; i++) {
+                const parts = coords[i].split(',');
+                if (parts.length >= 2) {
+                    const lng = parseFloat(parts[0]);
+                    const lat = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        latLngs.push([lat, lng]);
+                    }
+                }
+            }
+            
+            return latLngs;
+        }
+
+        // Fungsi untuk parse KML
+        function parseKML(kmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(kmlText, 'text/xml');
+            const placemarks = xmlDoc.getElementsByTagName('Placemark');
+            
+            roadsLayer.clearLayers();
+            lampuCategories.clear();
+            roadStats = { total: 0, visible: 0, bounds: L.latLngBounds() };
+
+            // First pass: collect all unique lampu values
+            for (let i = 0; i < placemarks.length; i++) {
+                const placemark = placemarks[i];
+                const lampu = placemark.querySelector('Data[name="lampu"] value')?.textContent || 'Tidak Diketahui';
+                
+                if (!lampuCategories.has(lampu)) {
+                    lampuCategories.set(lampu, {
+                        roads: [],
+                        color: getCategoryColor(lampu, lampuCategories.size),
+                        visible: true,
+                        count: 0
+                    });
+                }
+            }
+
+            // Second pass: process all roads
+            for (let i = 0; i < placemarks.length; i++) {
+                const placemark = placemarks[i];
+                
+                // Ekstrak data
+                const namaJalan = placemark.querySelector('Data[name="Jalan"] value')?.textContent || 'Tidak diketahui';
+                const jaringan = placemark.querySelector('Data[name="jaringan"] value')?.textContent || 'Tidak Diketahui';
+                const lampu = placemark.querySelector('Data[name="lampu"] value')?.textContent || 'Tidak Diketahui';
+                
+                // Ekstrak koordinat
+                const lineString = placemark.querySelector('LineString coordinates');
+                if (lineString) {
+                    const coordText = lineString.textContent;
+                    const coordinates = parseCoordinates(coordText);
+                    
+                    if (coordinates.length > 0) {
+                        // Get category info
+                        const categoryInfo = lampuCategories.get(lampu);
+                        
+                        // Buat polyline
+                        const polyline = L.polyline(coordinates, {
+                            color: categoryInfo.color,
+                            weight: 4,
+                            opacity: 0.8
+                        });
+
+                        // Tambahkan popup
+                        const popupContent = `
+                            <div style="min-width: 200px;">
+                                <h4 style="margin: 0 0 10px 0; color: ${categoryInfo.color};">${namaJalan}</h4>
+                                <p style="margin: 5px 0;"><strong>Status Lampu:</strong> ${lampu}</p>
+                                <p style="margin: 5px 0;"><strong>Jaringan:</strong> ${jaringan}</p>
+                                <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
+                                    <strong>Koordinat:</strong> ${coordinates.length} titik
+                                </p>
+                            </div>
+                        `;
+                        
+                        polyline.bindPopup(popupContent);
+                        
+                        // Store road data
+                        const roadData = {
+                            polyline: polyline,
+                            namaJalan: namaJalan,
+                            jaringan: jaringan,
+                            lampu: lampu,
+                            coordinates: coordinates,
+                            category: lampu
+                        };
+                        
+                        categoryInfo.roads.push(roadData);
+                        categoryInfo.count++;
+                        roadsLayer.addLayer(polyline);
+                        
+                        // Update statistik
+                        roadStats.total++;
+                        roadStats.visible++;
+                        
+                        // Update bounds
+                        coordinates.forEach(coord => {
+                            roadStats.bounds.extend(coord);
+                        });
+                    }
+                }
+            }
+
+            // Update UI
+            updateFilterUI();
+            updateLegend();
+            updateStats();
+            
+            // Show filter section
+            document.getElementById('filterSection').style.display = 'block';
+            
+            // Zoom ke bounds jika ada data
+            if (roadStats.total > 0) {
+                map.fitBounds(roadStats.bounds, { padding: [20, 20] });
+            }
+
+            return roadStats.total;
+        }
+
+        // Fungsi untuk update filter UI
+        function updateFilterUI() {
+            const filterList = document.getElementById('filterList');
+            filterList.innerHTML = '';
+            
+            // Sort categories by count (descending)
+            const sortedCategories = Array.from(lampuCategories.entries())
+                .sort((a, b) => b[1].count - a[1].count);
+            
+            sortedCategories.forEach(([category, data]) => {
+                const filterItem = document.createElement('div');
+                filterItem.className = 'filter-item';
+                
+                filterItem.innerHTML = `
+                    <input type="checkbox" class="filter-checkbox" 
+                           id="filter_${category.replace(/[^a-zA-Z0-9]/g, '_')}" 
+                           ${data.visible ? 'checked' : ''} 
+                           onchange="toggleCategory('${category.replace(/'/g, "\\'")}')">
+                    <div class="filter-color" style="background: ${data.color};"></div>
+                    <label class="filter-label" for="filter_${category.replace(/[^a-zA-Z0-9]/g, '_')}">${category}</label>
+                    <span class="filter-count">${data.count}</span>
+                `;
+                
+                filterList.appendChild(filterItem);
+            });
+        }
+
+        // Fungsi untuk update legenda
+        function updateLegend() {
+            const legendList = document.getElementById('legendList');
+            legendList.innerHTML = '';
+            
+            // Sort categories by count (descending)
+            const sortedCategories = Array.from(lampuCategories.entries())
+                .sort((a, b) => b[1].count - a[1].count);
+            
+            sortedCategories.forEach(([category, data]) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background: ${data.color};"></div>
+                    <span><strong>${category}</strong> (${data.count} jalan)</span>
+                `;
+                
+                legendList.appendChild(legendItem);
+            });
+        }
+
+        // Fungsi untuk toggle kategori
+        function toggleCategory(category) {
+            const categoryData = lampuCategories.get(category);
+            if (!categoryData) return;
+            
+            categoryData.visible = !categoryData.visible;
+            
+            // Show/hide roads
+            categoryData.roads.forEach(roadData => {
+                if (categoryData.visible) {
+                    roadsLayer.addLayer(roadData.polyline);
+                } else {
+                    roadsLayer.removeLayer(roadData.polyline);
+                }
+            });
+            
+            updateStats();
+        }
+
+        // Fungsi untuk show all categories
+        function showAllCategories() {
+            lampuCategories.forEach((data, category) => {
+                data.visible = true;
+                data.roads.forEach(roadData => {
+                    roadsLayer.addLayer(roadData.polyline);
+                });
+                
+                // Update checkbox
+                const checkbox = document.getElementById(`filter_${category.replace(/[^a-zA-Z0-9]/g, '_')}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            updateStats();
+        }
+
+        // Fungsi untuk hide all categories
+        function hideAllCategories() {
+            lampuCategories.forEach((data, category) => {
+                data.visible = false;
+                data.roads.forEach(roadData => {
+                    roadsLayer.removeLayer(roadData.polyline);
+                });
+                
+                // Update checkbox
+                const checkbox = document.getElementById(`filter_${category.replace(/[^a-zA-Z0-9]/g, '_')}`);
+                if (checkbox) checkbox.checked = false;
+            });
+            updateStats();
+        }
+
+        // Fungsi untuk update statistik
+        function updateStats() {
+            // Count visible roads
+            let visibleCount = 0;
+            lampuCategories.forEach(data => {
+                if (data.visible) {
+                    visibleCount += data.count;
+                }
+            });
+            
+            roadStats.visible = visibleCount;
+            
+            document.getElementById('totalRoads').textContent = roadStats.total;
+            document.getElementById('uniqueCategories').textContent = lampuCategories.size;
+            document.getElementById('visibleRoads').textContent = roadStats.visible;
+            
+            const bounds = roadStats.bounds;
+            if (bounds && bounds.isValid()) {
+                const area = `${bounds.getNorth().toFixed(3)}, ${bounds.getWest().toFixed(3)} - ${bounds.getSouth().toFixed(3)}, ${bounds.getEast().toFixed(3)}`;
+                document.getElementById('areaInfo').textContent = area;
+            }
+        }
+
+        // Event handler untuk upload file
+        document.getElementById('kmlFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validasi file
+            if (!file.name.toLowerCase().endsWith('.kml')) {
+                showError('File harus berformat KML');
+                return;
+            }
+
+            // Show loading
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.error').style.display = 'none';
+            document.querySelector('.success').style.display = 'none';
+
+            // Baca file
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const kmlContent = e.target.result;
+                    const roadCount = parseKML(kmlContent);
+                    
+                    document.querySelector('.loading').style.display = 'none';
+                    showSuccess(`Berhasil memuat ${roadCount} segmen jalan dengan ${lampuCategories.size} kategori unik`);
+                    
+                } catch (error) {
+                    document.querySelector('.loading').style.display = 'none';
+                    showError('Error parsing file KML: ' + error.message);
+                }
+            };
+
+            reader.onerror = function() {
+                document.querySelector('.loading').style.display = 'none';
+                showError('Error membaca file');
+            };
+
+            reader.readAsText(file);
+        });
+
+        // Fungsi helper untuk menampilkan pesan
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Inisialisasi statistik kosong
+        updateStats();
+
+        // Tambahkan control scale
+        L.control.scale().addTo(map);
+
+        // Tambahkan marker untuk referensi geografis
+        const referenceMarker = L.marker([-7.8, 112.1])
+            .addTo(map)
+            .bindPopup('<b>Referensi Lokasi</b><br>Jawa Timur, Indonesia');
+    </script>
+</body>
+</html>

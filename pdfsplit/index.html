@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Splitter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-white text-center mb-6">PDF Splitter</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg p-4">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-800">Pengaturan Split</h2>
+                    
+                    <button onclick="addSplitItem()" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-lg mb-4 transition duration-200 sticky top-4 z-10">
+                        + Tambah Split Baru
+                    </button>
+                    
+                    <div id="splitItems" class="space-y-3 mb-4 max-h-96 overflow-y-auto">
+                        <!-- Split items akan ditambahkan di sini -->
+                    </div>
+                    
+                    <button onclick="generateSplitFiles()" id="generateBtn" disabled 
+                            class="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-3 rounded-lg transition duration-200 sticky bottom-4">
+                        Download Semua
+                    </button>
+                    
+                    <div id="progressBar" class="hidden mt-3">
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="progressFill" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <!-- Upload Area -->
+                    <div id="uploadArea" onclick="document.getElementById('fileInput').click()" 
+                         class="border-3 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200 mb-6">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Upload File PDF</h3>
+                        <p class="text-gray-500">Klik atau drag & drop file PDF di sini</p>
+                        <input type="file" id="fileInput" accept=".pdf" class="hidden">
+                    </div>
+                    
+                    <!-- PDF Viewer -->
+                    <div id="pdfViewer" class="border rounded-lg bg-gray-50 p-4 min-h-screen max-h-screen overflow-y-auto">
+                        <div class="text-center text-gray-500 py-20">
+                            <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p class="text-lg">Belum ada PDF yang diupload</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Preview -->
+    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-90vh overflow-y-auto">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-semibold flex items-center gap-2">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Preview Split
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div id="previewContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <script>
+        let pdfDoc = null;
+        let pdfFile = null;
+        let splitCounter = 0;
+
+        // Setup PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const generateBtn = document.getElementById('generateBtn');
+
+        // Event listeners
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        }
+
+        async function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                alert('Silakan pilih file PDF yang valid');
+                return;
+            }
+
+            try {
+                // Store the original file
+                pdfFile = file;
+                
+                // Create separate ArrayBuffer for PDF.js
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Load PDF with PDF.js for viewing
+                pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                await renderPDF();
+                generateBtn.disabled = false;
+                
+                // Add first split item automatically
+                if (document.getElementById('splitItems').children.length === 0) {
+                    addSplitItem();
+                }
+                
+                // Update upload area
+                uploadArea.innerHTML = `
+                    <svg class="mx-auto h-12 w-12 text-green-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-green-600">PDF Berhasil Diupload</h3>
+                    <p class="text-sm text-gray-500">${file.name} (${pdfDoc.numPages} halaman)</p>
+                    <p class="text-xs text-gray-400 mt-2">Klik untuk upload file lain</p>
+                `;
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF file: ' + error.message);
+            }
+        }
+
+        async function renderPDF() {
+            pdfViewer.innerHTML = '';
+            
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                try {
+                    const page = await pdfDoc.getPage(pageNum);
+                    const scale = 1.5; // Increased scale for better visibility
+                    const viewport = page.getViewport({ scale });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.className = 'border rounded shadow-sm bg-white mb-4 mx-auto block';
+
+                    const pageDiv = document.createElement('div');
+                    pageDiv.className = 'text-center mb-6';
+                    
+                    const pageInfo = document.createElement('div');
+                    pageInfo.className = 'text-sm text-blue-600 font-medium mb-3 bg-blue-50 inline-block px-3 py-1 rounded-full';
+                    pageInfo.textContent = `Halaman ${pageNum}`;
+                    
+                    pageDiv.appendChild(pageInfo);
+                    pageDiv.appendChild(canvas);
+                    pdfViewer.appendChild(pageDiv);
+
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                } catch (error) {
+                    console.error(`Error rendering page ${pageNum}:`, error);
+                }
+            }
+        }
+
+        function addSplitItem() {
+            if (!pdfDoc) {
+                alert('Silakan upload PDF terlebih dahulu');
+                return;
+            }
+
+            splitCounter++;
+            const splitItems = document.getElementById('splitItems');
+            
+            const splitDiv = document.createElement('div');
+            splitDiv.className = 'bg-gray-50 border rounded-lg p-4';
+            splitDiv.id = `split-${splitCounter}`;
+            
+            splitDiv.innerHTML = `
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama File:</label>
+                    <input type="text" class="filename w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           placeholder="Nama file output" value="dokumen_${splitCounter}">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Halaman:</label>
+                    <input type="text" class="pages w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           placeholder="Contoh: 5 atau 5-6 atau 5,7,9" value="1">
+                    <p class="text-xs text-gray-500 mt-1">Format: 5 (satu halaman), 5-6 (range), 5,7,9 (multiple halaman)</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="previewSplit('${splitCounter}')" 
+                            class="flex-1 bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded transition duration-200 flex items-center justify-center gap-1">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Preview
+                    </button>
+                    <button onclick="removeSplitItem('${splitCounter}')" 
+                            class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded transition duration-200 flex items-center justify-center gap-1">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Hapus
+                    </button>
+                </div>
+            `;
+            
+            splitItems.appendChild(splitDiv);
+        }
+
+        function removeSplitItem(id) {
+            const item = document.getElementById(`split-${id}`);
+            if (item) {
+                item.remove();
+            }
+        }
+
+        function parsePages(pagesInput, totalPages) {
+            const pages = [];
+            const parts = pagesInput.split(',');
+            
+            for (let part of parts) {
+                part = part.trim();
+                
+                if (part.includes('-')) {
+                    // Range format (e.g., "5-8")
+                    const [start, end] = part.split('-').map(p => parseInt(p.trim()));
+                    if (isNaN(start) || isNaN(end) || start < 1 || end > totalPages || start > end) {
+                        throw new Error(`Invalid range: ${part}`);
+                    }
+                    for (let i = start; i <= end; i++) {
+                        if (!pages.includes(i)) pages.push(i);
+                    }
+                } else {
+                    // Single page (e.g., "5")
+                    const pageNum = parseInt(part);
+                    if (isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+                        throw new Error(`Invalid page: ${part}`);
+                    }
+                    if (!pages.includes(pageNum)) pages.push(pageNum);
+                }
+            }
+            
+            return pages.sort((a, b) => a - b);
+        }
+
+        async function previewSplit(id) {
+            const splitItem = document.getElementById(`split-${id}`);
+            const fileName = splitItem.querySelector('.filename').value;
+            const pagesInput = splitItem.querySelector('.pages').value;
+
+            try {
+                const pages = parsePages(pagesInput, pdfDoc.numPages);
+                
+                const modal = document.getElementById('previewModal');
+                const previewContent = document.getElementById('previewContent');
+                
+                previewContent.innerHTML = `
+                    <div class="mb-4">
+                        <h4 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            ${fileName}.pdf
+                        </h4>
+                        <p class="text-gray-600">Halaman: ${pages.join(', ')} (${pages.length} halaman)</p>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                `;
+
+                for (let pageNum of pages) {
+                    const page = await pdfDoc.getPage(pageNum);
+                    const scale = 0.5;
+                    const viewport = page.getViewport({ scale });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.className = 'border rounded shadow-sm bg-white mb-3 mx-auto block';
+
+                    const pageLabel = document.createElement('div');
+                    pageLabel.className = 'text-center text-sm text-blue-600 font-medium mb-2';
+                    pageLabel.textContent = `Halaman ${pageNum}`;
+
+                    previewContent.querySelector('div:last-child').appendChild(pageLabel);
+                    previewContent.querySelector('div:last-child').appendChild(canvas);
+
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                }
+
+                previewContent.innerHTML += '</div>';
+                modal.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error generating preview:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        async function generateSplitFiles() {
+            const splitItems = document.querySelectorAll('#splitItems > div');
+            
+            if (splitItems.length === 0) {
+                alert('Silakan tambah minimal satu pengaturan split');
+                return;
+            }
+
+            if (!pdfFile) {
+                alert('File PDF tidak ditemukan. Silakan upload ulang.');
+                return;
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.classList.remove('hidden');
+            generateBtn.disabled = true;
+
+            try {
+                // Create fresh ArrayBuffer for PDF-lib
+                const freshArrayBuffer = await pdfFile.arrayBuffer();
+                const pdfLibDoc = await PDFLib.PDFDocument.load(freshArrayBuffer);
+                let successCount = 0;
+                
+                for (let i = 0; i < splitItems.length; i++) {
+                    const item = splitItems[i];
+                    const fileName = item.querySelector('.filename').value || `split_${i + 1}`;
+                    const pagesInput = item.querySelector('.pages').value;
+
+                    try {
+                        const pages = parsePages(pagesInput, pdfDoc.numPages);
+                        
+                        // Create new PDF document
+                        const newPdf = await PDFLib.PDFDocument.create();
+                        
+                        // Copy pages (convert to 0-based indexing for PDF-lib)
+                        const pagesToCopy = pages.map(p => p - 1);
+                        const copiedPages = await newPdf.copyPages(pdfLibDoc, pagesToCopy);
+                        copiedPages.forEach((page) => newPdf.addPage(page));
+
+                        // Generate PDF bytes
+                        const newPdfBytes = await newPdf.save();
+
+                        // Download file
+                        const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${fileName}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        successCount++;
+
+                    } catch (pageError) {
+                        console.error(`Error pada item ${i + 1}:`, pageError);
+                        alert(`Error pada item ${i + 1}: ${pageError.message}`);
+                    }
+
+                    // Update progress
+                    const progress = ((i + 1) / splitItems.length) * 100;
+                    progressFill.style.width = `${progress}%`;
+                    
+                    // Small delay to show progress
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+
+                if (successCount > 0) {
+                    alert(`Berhasil generate ${successCount} file PDF!`);
+                }
+                
+            } catch (error) {
+                console.error('Error splitting PDF:', error);
+                alert('Error saat memecah PDF: ' + error.message);
+            } finally {
+                progressBar.classList.add('hidden');
+                progressFill.style.width = '0%';
+                generateBtn.disabled = false;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
