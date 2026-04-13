@@ -802,7 +802,7 @@
             const months = monthEntries.map(([display]) => display);
             
             let tableHTML = '<thead><tr>';
-            tableHTML += '<th>IDPEL</th><th>Nama</th><th>Alamat</th><th>Daya</th>';
+            tableHTML += '<th>No</th><th>IDPEL</th><th>Nama</th><th>Alamat</th><th>Daya</th>';
             
             months.forEach(month => {
                 tableHTML += `<th colspan="2">${month}</th>`;
@@ -811,7 +811,7 @@
             tableHTML += '<th>Trend</th><th>Perubahan</th></tr>';
             
             // Sub header for KWH/PTL
-            tableHTML += '<tr><th></th><th></th><th></th><th></th>';
+            tableHTML += '<tr><th></th><th></th><th></th><th></th><th></th>';
             months.forEach(() => {
                 tableHTML += '<th>KWH<br><small>(Jam/hr)</small></th><th>PTL (Rp)<br><small>Est. (Rp)</small></th>';
             });
@@ -819,12 +819,13 @@
             
             const filteredData = getFilteredData();
             
-            filteredData.forEach(customer => {
+            filteredData.forEach((customer, index) => {
                 let rowClass = '';
                 if (customer.trend === 'increase') rowClass = 'highlight-critical';
                 else if (customer.trend === 'decrease') rowClass = 'highlight-high';
-                
+
                 tableHTML += `<tr class="${rowClass}">`;
+                tableHTML += `<td style="text-align:center;color:#888;">${index + 1}</td>`;
                 tableHTML += `<td>${customer.idpel}</td>`;
                 tableHTML += `<td>${customer.nama}</td>`;
                 tableHTML += `<td>${customer.alamat}</td>`;
