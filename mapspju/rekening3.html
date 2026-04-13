@@ -334,6 +334,7 @@
                     <button class="filter-btn" data-filter="stable">Stabil</button>
                     <button class="filter-btn" data-filter="new">Pelanggan Baru</button>
                     <button class="filter-btn" data-filter="over12" style="border-color:#dc3545;color:#dc3545;">⚠️ &gt;12 Jam/hr</button>
+                    <button class="filter-btn" data-filter="last12" style="border-color:#7c0000;color:#7c0000;">🔴 Last &gt;12 Jam/hr</button>
                 </div>
             </div>
 
@@ -979,6 +980,12 @@
                             return customer.trend === 'new';
                         case 'over12':
                             return customer.hasOver12;
+                        case 'last12': {
+                            const lastMonth = customer.monthKeys[customer.monthKeys.length - 1];
+                            const d = customer.months[lastMonth];
+                            const jam = customer.daya > 0 ? (d.kwh * 1000) / customer.daya / 30 : 0;
+                            return jam > 12;
+                        }
                         default:
                             return true;
                     }
