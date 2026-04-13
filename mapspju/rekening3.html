@@ -239,6 +239,38 @@
         .export-btn:hover {
             background: #218838;
         }
+
+        .print-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .print-btn:hover {
+            background: #545b62;
+        }
+
+        @media print {
+            body { background: white; }
+            .upload-section, .controls, .loading,
+            .chart-container, .export-btn, .print-btn,
+            .header p, #statsGrid { display: none !important; }
+            .container { max-width: 100%; padding: 0; }
+            .header h1 { color: #333; text-shadow: none; font-size: 1.4rem; }
+            .data-section { box-shadow: none; padding: 10px 0; }
+            .section-title { font-size: 1rem; }
+            table { font-size: 0.7rem; }
+            th, td { padding: 5px 4px; }
+            td.over-12h { background-color: #dc3545 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .highlight-critical { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .highlight-high { background-color: #fff3cd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
         
         .loading {
             display: none;
@@ -351,6 +383,7 @@
                     <table id="comparisonTable"></table>
                 </div>
                 <button class="export-btn" onclick="exportToCSV()">📥 Export ke CSV</button>
+                <button class="print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
             </div>
 
             <div class="data-section">
