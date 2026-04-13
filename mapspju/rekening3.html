@@ -306,7 +306,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 PLN Data Analyzer</h1>
-            <p>Analisis Tagihan Penerangan Jalan Umum per IDPEL &nbsp;|&nbsp; Tarif: Rp 1.699,53/kWh &nbsp;|&nbsp; Batas normal: ≤ 12 jam/hari</p>
+            <p>Analisis Tagihan Penerangan Jalan Umum per IDPEL &nbsp;|&nbsp; Tarif: Rp 1.699,53/kWh &nbsp;|&nbsp; Batas normal: ≤ 12,5 jam/hari</p>
         </div>
 
         <div class="upload-section">
@@ -333,8 +333,8 @@
                     <button class="filter-btn" data-filter="decrease">Turun Significant</button>
                     <button class="filter-btn" data-filter="stable">Stabil</button>
                     <button class="filter-btn" data-filter="new">Pelanggan Baru</button>
-                    <button class="filter-btn" data-filter="over12" style="border-color:#dc3545;color:#dc3545;">⚠️ &gt;12 Jam/hr</button>
-                    <button class="filter-btn" data-filter="last12" style="border-color:#7c0000;color:#7c0000;">🔴 Last &gt;12 Jam/hr</button>
+                    <button class="filter-btn" data-filter="over12" style="border-color:#dc3545;color:#dc3545;">⚠️ &gt;12,5 Jam/hr</button>
+                    <button class="filter-btn" data-filter="last12" style="border-color:#7c0000;color:#7c0000;">🔴 Last &gt;12,5 Jam/hr</button>
                 </div>
             </div>
 
@@ -613,7 +613,7 @@
                     totalKwh += customer.months[month].kwh;
                     totalPtl += customer.months[month].ptl;
                     const jam = customer.daya > 0 ? (customer.months[month].kwh * 1000) / customer.daya / 30 : 0;
-                    if (jam > 12) processed.hasOver12 = true;
+                    if (jam > 12.5) processed.hasOver12 = true;
                 });
                 
                 processed.avgKwh = totalKwh / monthKeys.length;
@@ -709,7 +709,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" style="color:#dc3545;">⚠️ ${over12Count}</div>
-                    <div class="stat-label">Pelanggan &gt;12 Jam/hr</div>
+                    <div class="stat-label">Pelanggan &gt;12,5 Jam/hr</div>
                 </div>
             `;
         }
@@ -836,7 +836,7 @@
                     if (customer.months[month]) {
                         const data = customer.months[month];
                         const jam = customer.daya > 0 ? (data.kwh * 1000) / customer.daya / 30 : 0;
-                        const over = jam > 12;
+                        const over = jam > 12.5;
                         const estimasi = Math.round(data.kwh * HARGA_KWH);
                         const selisih = data.ptl - estimasi;
                         const selisihSign = selisih >= 0 ? '+' : '';
@@ -984,7 +984,7 @@
                             const lastMonth = customer.monthKeys[customer.monthKeys.length - 1];
                             const d = customer.months[lastMonth];
                             const jam = customer.daya > 0 ? (d.kwh * 1000) / customer.daya / 30 : 0;
-                            return jam > 12;
+                            return jam > 12.5;
                         }
                         default:
                             return true;
