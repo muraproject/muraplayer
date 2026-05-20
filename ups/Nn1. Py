@@ -1,0 +1,1041 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import serial
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from collections import deque
+import threading
+import time
+import random
+import os
+
+try:
+    from sklearn.neural_network import MLPClassifier
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score, classification_report
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    print("scikit-learn not available. Neural network features will be limited.")
+    SKLEARN_AVAILABLE = False
+
+import pickle
+import warnings
+warnings.filterwarnings('ignore')
+
+class MuscleStateAnalyzer:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Muscle State Neural Network Analyzer")
+        self.root.geometry("1200x700")
+        
+        # Serial connection
+        self.serial_port = None
+        
+        # Data buffers
+        self.window_size = 20
+        self.data_buffer = deque(maxlen=100)
+        self.slope_buffer = deque(maxlen=100)
+        self.analysis_buffer = deque(maxlen=self.window_size)
+        
+        # State tracking
+        self.state = "IDLE"  # IDLE, MOVING, RETURNING
+        self.prev_state = None
+        self.state_history = deque(maxlen=20)  # Track recent states
+        self.state_duration = 0
+        
+        # Movement detection - FIXED threshold
+        self.movement_threshold = 1.4  # Fixed value
+        self.is_moving = False
+        
+        # Activity tracking - key feature for prediction
+        self.activity_counter = 0
+        self.window_activity = deque(maxlen=15)  # Activity in recent window
+        self.activity_ratio = 0.0
+        
+        # Neural Network features
+        self.feature_window_size = 30
+        self.feature_buffer = deque(maxlen=self.feature_window_size)
+        self.nn_model = None
+        if SKLEARN_AVAILABLE:
+            self.scaler = StandardScaler()
+        else:
+            self.scaler = None
+        self.is_nn_trained = False
+        
+        # Recording and prediction
+        self.is_recording = False
+        self.current_gesture = None
+        self.is_predicting = False
+        self.prediction_history = deque(maxlen=5)
+        
+        # Feedback settings
+        self.feedback_enabled = False
+        self.last_sent_prediction = None
+        self.feedback_delay = 0.5  # Minimum time between feedbacks in seconds
+        self.last_feedback_time = 0
+        
+        # Gesture data - only for neural network
+        self.gesture_data = {
+            'open': {
+                'features': [],  # For NN training
+                'raw_signals': []
+            },
+            'close': {
+                'features': [],  # For NN training
+                'raw_signals': []
+            }
+        }
+        
+        # Performance settings
+        self.update_interval = 150  # ms
+        self.sample_counter = 0
+        self.process_every = 2  # Process 1 in N samples
+        
+        # Create models directory if it doesn't exist
+        if not os.path.exists('models'):
+            os.makedirs('models')
+        
+        # Setup UI
+        self.setup_gui()
+    
+    def setup_gui(self):
+        # Main layout
+        main_frame = ttk.Frame(self.root)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Control panel (left)
+        control_frame = ttk.Frame(main_frame, width=350)
+        control_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=5)
+        
+        # Connection section
+        conn_frame = ttk.LabelFrame(control_frame, text="Connection", padding=10)
+        conn_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(conn_frame, text="Port:").grid(row=0, column=0, padx=5)
+        self.port_entry = ttk.Entry(conn_frame, width=10)
+        self.port_entry.insert(0, "COM3")
+        self.port_entry.grid(row=0, column=1, padx=5)
+        
+        self.connect_btn = ttk.Button(conn_frame, text="Connect", 
+                                     command=self.toggle_connection)
+        self.connect_btn.grid(row=0, column=2, padx=5)
+        
+        # Recording section
+        record_frame = ttk.LabelFrame(control_frame, text="Record Gesture", padding=10)
+        record_frame.pack(fill=tk.X, pady=5)
+        
+        self.gesture_var = tk.StringVar(value="open")
+        ttk.Radiobutton(record_frame, text="Open Hand", variable=self.gesture_var,
+                       value="open").pack(anchor=tk.W)
+        ttk.Radiobutton(record_frame, text="Close Hand", variable=self.gesture_var,
+                       value="close").pack(anchor=tk.W)
+        
+        self.record_btn = ttk.Button(record_frame, text="Start Recording",
+                                   command=self.toggle_recording)
+        self.record_btn.pack(pady=5, fill=tk.X)
+        
+        # Neural Network Training section
+        train_frame = ttk.LabelFrame(control_frame, text="Neural Network Training", padding=10)
+        train_frame.pack(fill=tk.X, pady=5)
+        
+        self.train_nn_btn = ttk.Button(train_frame, text="Train Neural Network",
+                                     command=self.train_neural_network)
+        self.train_nn_btn.pack(pady=5, fill=tk.X)
+        if not SKLEARN_AVAILABLE:
+            self.train_nn_btn.config(state='disabled')
+        
+        self.predict_btn = ttk.Button(train_frame, text="Start Prediction",
+                                    command=self.toggle_prediction)
+        self.predict_btn.pack(pady=5, fill=tk.X)
+        
+        # Feedback Control section
+        feedback_frame = ttk.LabelFrame(control_frame, text="Arduino Feedback", padding=10)
+        feedback_frame.pack(fill=tk.X, pady=5)
+        
+        self.feedback_var = tk.BooleanVar()
+        self.feedback_checkbox = ttk.Checkbutton(feedback_frame, text="Enable Feedback to Arduino",
+                                                variable=self.feedback_var,
+                                                command=self.toggle_feedback)
+        self.feedback_checkbox.pack(pady=2)
+        
+        # Feedback info
+        feedback_info_frame = ttk.Frame(feedback_frame)
+        feedback_info_frame.pack(fill=tk.X, pady=2)
+        
+        ttk.Label(feedback_info_frame, text="OPEN → Send: '0'", 
+                 font=("Arial", 9)).pack(anchor=tk.W)
+        ttk.Label(feedback_info_frame, text="CLOSE → Send: '1'", 
+                 font=("Arial", 9)).pack(anchor=tk.W)
+        
+        self.feedback_status_label = ttk.Label(feedback_frame, text="Feedback: Disabled", 
+                                             foreground="gray")
+        self.feedback_status_label.pack(pady=2)
+        
+        if not SKLEARN_AVAILABLE:
+            self.feedback_checkbox.config(state='disabled')
+        
+        # Model Management section
+        model_frame = ttk.LabelFrame(control_frame, text="Model Management", padding=10)
+        model_frame.pack(fill=tk.X, pady=5)
+        
+        # Save model with custom name
+        save_frame = ttk.Frame(model_frame)
+        save_frame.pack(fill=tk.X, pady=2)
+        
+        ttk.Label(save_frame, text="Model Name:").pack(anchor=tk.W)
+        self.model_name_entry = ttk.Entry(save_frame)
+        self.model_name_entry.insert(0, "my_muscle_model")
+        self.model_name_entry.pack(fill=tk.X, pady=2)
+        
+        self.save_model_btn = ttk.Button(save_frame, text="Save Neural Network Model",
+                                       command=self.save_nn_model)
+        self.save_model_btn.pack(fill=tk.X, pady=2)
+        
+        # Load model from file browser
+        self.load_model_btn = ttk.Button(model_frame, text="Load Neural Network Model",
+                                       command=self.load_nn_model)
+        self.load_model_btn.pack(fill=tk.X, pady=2)
+        
+        if not SKLEARN_AVAILABLE:
+            self.save_model_btn.config(state='disabled')
+            self.load_model_btn.config(state='disabled')
+        
+        # Results section
+        results_frame = ttk.LabelFrame(control_frame, text="Prediction Results", padding=10)
+        results_frame.pack(fill=tk.X, pady=5)
+        
+        self.prediction_label = ttk.Label(results_frame, text="Prediction: -",
+                                        font=("Arial", 14, "bold"))
+        self.prediction_label.pack(pady=5)
+        
+        self.confidence_label = ttk.Label(results_frame, text="Confidence: -")
+        self.confidence_label.pack(pady=2)
+        
+        # Confidence threshold info
+        ttk.Label(results_frame, text="Rule: Confidence < 0.6 → OPEN", 
+                 font=("Arial", 9, "italic"), foreground="gray").pack(pady=2)
+        
+        # Current values section
+        values_frame = ttk.LabelFrame(control_frame, text="Current Values", padding=10)
+        values_frame.pack(fill=tk.X, pady=5)
+        
+        self.value_label = ttk.Label(values_frame, text="Signal: -")
+        self.value_label.pack(pady=2)
+        
+        self.slope_label = ttk.Label(values_frame, text="Slope: -")
+        self.slope_label.pack(pady=2)
+        
+        self.state_label = ttk.Label(values_frame, text="State: IDLE")
+        self.state_label.pack(pady=2)
+        
+        self.activity_label = ttk.Label(values_frame, text="Activity Ratio: 0.00")
+        self.activity_label.pack(pady=2)
+        
+        if SKLEARN_AVAILABLE:
+            self.nn_status_label = ttk.Label(values_frame, text="NN Status: Not Trained", foreground="red")
+        else:
+            self.nn_status_label = ttk.Label(values_frame, text="NN Status: sklearn not installed", foreground="orange")
+        self.nn_status_label.pack(pady=2)
+        
+        # Movement threshold info (read-only)
+        threshold_frame = ttk.LabelFrame(control_frame, text="Detection Rules", padding=10)
+        threshold_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Label(threshold_frame, text=f"Movement Threshold: {self.movement_threshold} (Fixed)", 
+                 font=("Arial", 10)).pack(pady=1)
+        ttk.Label(threshold_frame, text="Confidence Rule: < 0.6 → OPEN", 
+                 font=("Arial", 10)).pack(pady=1)
+        ttk.Label(threshold_frame, text="Low confidence predictions default to OPEN", 
+                 font=("Arial", 9, "italic"), foreground="gray").pack(pady=1)
+        
+        # Analysis section
+        analysis_frame = ttk.LabelFrame(control_frame, text="Training Data Analysis", padding=10)
+        analysis_frame.pack(fill=tk.X, expand=True, pady=5)
+        
+        self.open_stats = ttk.Label(analysis_frame, text="Open: No data", wraplength=300)
+        self.open_stats.pack(fill=tk.X, pady=5)
+        
+        self.close_stats = ttk.Label(analysis_frame, text="Close: No data", wraplength=300)
+        self.close_stats.pack(fill=tk.X, pady=5)
+        
+        # Plot area (right)
+        plot_frame = ttk.Frame(main_frame)
+        plot_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        # Create plots
+        self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, figsize=(8, 8), dpi=80)
+        
+        # Signal plot
+        self.line1, = self.ax1.plot([], [], 'b-', linewidth=1.5, label='EMG Signal')
+        self.ax1.set_title('EMG Signal')
+        self.ax1.set_ylabel('Amplitude')
+        self.ax1.grid(True)
+        self.ax1.legend(loc='upper right')
+        
+        # State activity plot
+        self.line2, = self.ax2.plot([], [], 'r-', linewidth=1.5, label='Activity')
+        self.ax2.set_title('State Activity')
+        self.ax2.set_ylabel('Activity')
+        self.ax2.set_ylim(0, 1.1)
+        self.ax2.grid(True)
+        self.ax2.legend(loc='upper right')
+        
+        # Feature plot
+        self.line3, = self.ax3.plot([], [], 'g-', linewidth=1.5, label='Mean Signal Feature')
+        self.ax3.set_title('Neural Network Features (Mean Signal)')
+        self.ax3.set_ylabel('Feature Value')
+        self.ax3.grid(True)
+        self.ax3.legend(loc='upper right')
+        
+        # Setup for efficient rendering
+        self.fig.tight_layout()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=plot_frame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # Status bar
+        self.status_bar = ttk.Label(self.root, text="Not Connected | Neural Network Mode", relief=tk.SUNKEN)
+        self.status_bar.pack(fill=tk.X, side=tk.BOTTOM, pady=2)
+    
+    def extract_features(self, signal_window, slope_window, activity_window):
+        """Extract features for neural network"""
+        features = []
+        
+        if len(signal_window) > 0:
+            # Statistical features of signal
+            features.extend([
+                np.mean(signal_window),           # Mean signal
+                np.std(signal_window),            # Standard deviation
+                np.max(signal_window),            # Max value
+                np.min(signal_window),            # Min value
+                np.ptp(signal_window),            # Peak-to-peak
+            ])
+            
+            # Signal energy and power
+            signal_energy = np.sum(np.square(signal_window))
+            features.append(signal_energy)
+            
+            # Zero crossing rate
+            zero_crossings = np.sum(np.diff(np.sign(signal_window)) != 0)
+            features.append(zero_crossings)
+        else:
+            features.extend([0, 0, 0, 0, 0, 0, 0])
+        
+        if len(slope_window) > 0:
+            # Slope features
+            features.extend([
+                np.mean(slope_window),            # Mean slope
+                np.std(slope_window),             # Slope variability
+                np.max(np.abs(slope_window)),     # Max absolute slope
+            ])
+        else:
+            features.extend([0, 0, 0])
+        
+        if len(activity_window) > 0:
+            # Activity features
+            features.extend([
+                np.mean(activity_window),         # Mean activity
+                np.std(activity_window),          # Activity variability
+                np.sum(activity_window),          # Total activity
+            ])
+        else:
+            features.extend([0, 0, 0])
+        
+        # State-based features
+        features.extend([
+            1 if self.state == "MOVING" else 0,    # Is moving
+            1 if self.state == "RETURNING" else 0, # Is returning
+            self.state_duration,                    # Duration in current state
+        ])
+        
+        # Recent state change frequency
+        if len(self.state_history) > 1:
+            state_changes = sum(1 for i in range(1, len(self.state_history)) 
+                              if self.state_history[i] != self.state_history[i-1])
+            features.append(state_changes / max(1, len(self.state_history)))
+        else:
+            features.append(0)
+        
+        return np.array(features, dtype=np.float32)
+    
+    def calculate_slope(self, data):
+        """Calculate the slope of signal data"""
+        if len(data) < 2:
+            return 0
+        x = np.arange(len(data))
+        slope = np.polyfit(x, data, 1)[0]
+        return slope
+    
+    def update_state(self, value, slope):
+        """Update the state based on signal value and slope"""
+        # Determine if we're moving based on slope (fixed threshold)
+        prev_moving = self.is_moving
+        self.is_moving = abs(slope) > self.movement_threshold
+        
+        # State transition logic
+        prev_state = self.state
+        
+        if self.state == "IDLE":
+            if self.is_moving:
+                self.state = "MOVING"
+                self.state_duration = 0
+        elif self.state == "MOVING":
+            if not self.is_moving:
+                self.state = "RETURNING"
+                self.state_duration = 0
+            else:
+                self.state_duration += 1
+        elif self.state == "RETURNING":
+            if self.is_moving:
+                self.state = "MOVING"
+                self.state_duration = 0
+            else:
+                self.state_duration += 1
+                if self.state_duration > 5:
+                    self.state = "IDLE"
+                    self.state_duration = 0
+        
+        # Track state changes
+        if self.state != prev_state:
+            # Update UI
+            self.state_label.config(text=f"State: {self.state}")
+            # Add to state history
+            self.state_history.append(self.state)
+        
+        # Update activity tracking
+        self.update_activity_tracking()
+        
+        # Extract and store neural network features
+        self.extract_and_store_features(value)
+        
+        return self.state
+    
+    def extract_and_store_features(self, current_value):
+        """Extract features for neural network and store them"""
+        # Get recent data for feature extraction
+        signal_window = list(self.analysis_buffer) if len(self.analysis_buffer) > 0 else []
+        slope_window = list(self.slope_buffer)[-10:] if len(self.slope_buffer) > 0 else []
+        activity_window = list(self.window_activity) if len(self.window_activity) > 0 else []
+        
+        # Extract features
+        features = self.extract_features(signal_window, slope_window, activity_window)
+        
+        # Store features in buffer
+        self.feature_buffer.append(features)
+        
+        # Store features for training if recording
+        if self.is_recording:
+            self.gesture_data[self.current_gesture]['features'].append(features.copy())
+            self.gesture_data[self.current_gesture]['raw_signals'].append(current_value)
+    
+    def update_activity_tracking(self):
+        """Track activity level based on state changes"""
+        # Activity definition: not being in IDLE state
+        is_active = self.state != "IDLE"
+        
+        # Update window activity
+        self.window_activity.append(1 if is_active else 0)
+        
+        # Calculate activity ratio in the window
+        if len(self.window_activity) > 0:
+            self.activity_ratio = sum(self.window_activity) / len(self.window_activity)
+            
+            # Update UI
+            self.activity_label.config(text=f"Activity Ratio: {self.activity_ratio:.2f}")
+    
+    def train_neural_network(self):
+        """Train the neural network model"""
+        # Check if sklearn is available
+        if not SKLEARN_AVAILABLE:
+            messagebox.showerror("Error", "scikit-learn not installed.\nPlease install with: pip install scikit-learn")
+            return
+            
+        # Check if we have data for both gestures
+        if (not self.gesture_data['open']['features'] or 
+            not self.gesture_data['close']['features']):
+            messagebox.showerror("Error", "Please record both open and close gestures first")
+            return
+        
+        try:
+            # Prepare training data
+            X = []
+            y = []
+            
+            # Add open gesture data
+            for features in self.gesture_data['open']['features']:
+                X.append(features)
+                y.append(0)  # 0 for open
+            
+            # Add close gesture data  
+            for features in self.gesture_data['close']['features']:
+                X.append(features)
+                y.append(1)  # 1 for close
+                
+            X = np.array(X)
+            y = np.array(y)
+            
+            print(f"Training data shape: {X.shape}")
+            print(f"Number of features: {X.shape[1]}")
+            print(f"Open samples: {np.sum(y == 0)}, Close samples: {np.sum(y == 1)}")
+            
+            # Check if we have enough data
+            if len(X) < 10:
+                messagebox.showerror("Error", "Not enough training data. Record more samples.")
+                return
+            
+            # Split data for training and validation
+            if len(X) > 20:
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=0.2, random_state=42, stratify=y)
+            else:
+                X_train, X_test, y_train, y_test = X, X, y, y
+            
+            # Scale the features
+            self.scaler.fit(X_train)
+            X_train_scaled = self.scaler.transform(X_train)
+            X_test_scaled = self.scaler.transform(X_test)
+            
+            # Create and train neural network
+            self.nn_model = MLPClassifier(
+                hidden_layer_sizes=(64, 32, 16),  # 3 hidden layers
+                activation='relu',
+                solver='adam',
+                alpha=0.001,  # L2 regularization
+                batch_size='auto',
+                learning_rate='adaptive',
+                learning_rate_init=0.001,
+                max_iter=1000,
+                random_state=42,
+                early_stopping=True,
+                validation_fraction=0.1,
+                n_iter_no_change=20
+            )
+            
+            # Train the model
+            self.nn_model.fit(X_train_scaled, y_train)
+            
+            # Evaluate the model
+            y_pred = self.nn_model.predict(X_test_scaled)
+            accuracy = accuracy_score(y_test, y_pred)
+            
+            # Update status
+            self.is_nn_trained = True
+            self.nn_status_label.config(text=f"NN Status: Trained (Acc: {accuracy:.2f})", 
+                                      foreground="green")
+            
+            # Show results
+            result_msg = f"Neural Network Training Complete!\n\n"
+            result_msg += f"Training samples: {len(X_train)}\n"
+            result_msg += f"Test samples: {len(X_test)}\n"
+            result_msg += f"Features: {X.shape[1]}\n"
+            result_msg += f"Accuracy: {accuracy:.3f}\n"
+            result_msg += f"Training iterations: {self.nn_model.n_iter_}\n"
+            
+            messagebox.showinfo("Success", result_msg)
+            
+            # Update analysis display
+            self.update_analysis_display()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Neural network training failed: {str(e)}")
+            print(f"Detailed error: {e}")
+    
+    def predict_with_neural_network(self):
+        """Predict gesture using neural network with confidence threshold"""
+        if not SKLEARN_AVAILABLE:
+            return None, 0.0
+            
+        if not self.is_nn_trained or self.nn_model is None:
+            return None, 0.0
+        
+        # Get current features
+        if len(self.feature_buffer) == 0:
+            return None, 0.0
+            
+        current_features = self.feature_buffer[-1].reshape(1, -1)
+        
+        try:
+            # Scale features
+            current_features_scaled = self.scaler.transform(current_features)
+            
+            # Make prediction
+            prediction_proba = self.nn_model.predict_proba(current_features_scaled)[0]
+            prediction_class = self.nn_model.predict(current_features_scaled)[0]
+            
+            # Convert to readable format
+            if prediction_class == 0:
+                prediction = "OPEN"
+                confidence = prediction_proba[0]
+            else:
+                prediction = "CLOSE"
+                confidence = prediction_proba[1]
+            
+            # Apply confidence threshold rule
+            # If confidence < 0.6, always predict OPEN
+            if confidence < 0.6:
+                prediction = "OPEN"
+                # Use the confidence as is, but indicate low confidence
+                confidence = max(prediction_proba[0], prediction_proba[1])  # Use higher probability
+            
+            return prediction, confidence
+            
+        except Exception as e:
+            print(f"NN Prediction error: {e}")
+            return None, 0.0
+    
+    def save_nn_model(self):
+        """Save the trained neural network model with custom name"""
+        if not SKLEARN_AVAILABLE:
+            messagebox.showerror("Error", "scikit-learn not available")
+            return
+            
+        if not self.is_nn_trained or self.nn_model is None:
+            messagebox.showerror("Error", "No trained neural network to save")
+            return
+        
+        try:
+            # Get model name from entry
+            model_name = self.model_name_entry.get().strip()
+            if not model_name:
+                model_name = "my_muscle_model"
+            
+            # Remove invalid characters from filename
+            import re
+            model_name = re.sub(r'[<>:"/\\|?*]', '_', model_name)
+            
+            # Create filename
+            filename = f"models/{model_name}.pkl"
+            
+            # Save model and scaler
+            model_data = {
+                'model': self.nn_model,
+                'scaler': self.scaler,
+                'feature_names': [
+                    'mean_signal', 'std_signal', 'max_signal', 'min_signal', 'ptp_signal',
+                    'signal_energy', 'zero_crossings', 'mean_slope', 'std_slope', 'max_abs_slope',
+                    'mean_activity', 'std_activity', 'total_activity', 'is_moving', 'is_returning',
+                    'state_duration', 'state_change_frequency'
+                ],
+                'movement_threshold': self.movement_threshold,
+                'confidence_threshold': 0.6,  # Store confidence threshold
+                'feedback_settings': {
+                    'open_command': '0',
+                    'close_command': '1',
+                    'delay': self.feedback_delay
+                },
+                'training_info': {
+                    'open_samples': len(self.gesture_data['open']['features']),
+                    'close_samples': len(self.gesture_data['close']['features'])
+                }
+            }
+            
+            with open(filename, 'wb') as f:
+                pickle.dump(model_data, f)
+            
+            messagebox.showinfo("Success", f"Neural network model saved as:\n{filename}")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save model: {str(e)}")
+    
+    def load_nn_model(self):
+        """Load a neural network model from file browser"""
+        if not SKLEARN_AVAILABLE:
+            messagebox.showerror("Error", "scikit-learn not available")
+            return
+            
+        try:
+            # Open file dialog
+            filename = filedialog.askopenfilename(
+                title="Select Neural Network Model",
+                initialdir="models",
+                filetypes=[
+                    ("Pickle files", "*.pkl"),
+                    ("All files", "*.*")
+                ]
+            )
+            
+            if not filename:
+                return  # User cancelled
+            
+            # Load the model
+            with open(filename, 'rb') as f:
+                model_data = pickle.load(f)
+            
+            self.nn_model = model_data['model']
+            self.scaler = model_data['scaler']
+            self.is_nn_trained = True
+            
+            # Update UI
+            self.nn_status_label.config(text="NN Status: Loaded", foreground="blue")
+            
+            # Show model info
+            info_msg = f"Neural Network Model Loaded!\n\n"
+            info_msg += f"File: {os.path.basename(filename)}\n"
+            
+            if 'training_info' in model_data:
+                training_info = model_data['training_info']
+                info_msg += f"Open samples: {training_info.get('open_samples', 'Unknown')}\n"
+                info_msg += f"Close samples: {training_info.get('close_samples', 'Unknown')}\n"
+            
+            if 'movement_threshold' in model_data:
+                loaded_threshold = model_data['movement_threshold']
+                info_msg += f"Original threshold: {loaded_threshold}\n"
+                if abs(loaded_threshold - self.movement_threshold) > 0.1:
+                    info_msg += f"⚠️ Current threshold: {self.movement_threshold}\n"
+            
+            if 'confidence_threshold' in model_data:
+                conf_threshold = model_data['confidence_threshold']
+                info_msg += f"Confidence rule: < {conf_threshold} → OPEN\n"
+            else:
+                info_msg += f"Confidence rule: < 0.6 → OPEN (default)\n"
+            
+            if 'feedback_settings' in model_data:
+                feedback_settings = model_data['feedback_settings']
+                info_msg += f"Feedback: OPEN→'{feedback_settings.get('open_command', '0')}', "
+                info_msg += f"CLOSE→'{feedback_settings.get('close_command', '1')}'\n"
+            
+            messagebox.showinfo("Success", info_msg)
+            
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Model file not found")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load model: {str(e)}")
+    
+    def toggle_feedback(self):
+        """Toggle feedback to Arduino"""
+        self.feedback_enabled = self.feedback_var.get()
+        
+        if self.feedback_enabled:
+            if self.serial_port is None:
+                messagebox.showwarning("Warning", "No serial connection. Feedback will be enabled when connected.")
+                self.feedback_status_label.config(text="Feedback: Enabled (No Connection)", foreground="orange")
+            else:
+                self.feedback_status_label.config(text="Feedback: Enabled", foreground="green")
+        else:
+            self.feedback_status_label.config(text="Feedback: Disabled", foreground="gray")
+    
+    def send_feedback_to_arduino(self, prediction):
+        """Send feedback to Arduino based on prediction"""
+        if not self.feedback_enabled or self.serial_port is None:
+            return
+            
+        current_time = time.time()
+        
+        # Check if enough time has passed since last feedback
+        if current_time - self.last_feedback_time < self.feedback_delay:
+            return
+            
+        # Don't send the same prediction repeatedly
+        if prediction == self.last_sent_prediction:
+            return
+            
+        try:
+            # Send feedback based on prediction
+            if prediction == "OPEN":
+                feedback_data = "0\n"
+            elif prediction == "CLOSE":
+                feedback_data = "1\n"
+            else:
+                return  # Unknown prediction
+            
+            # Send to Arduino
+            self.serial_port.write(feedback_data.encode())
+            
+            # Update tracking variables
+            self.last_sent_prediction = prediction
+            self.last_feedback_time = current_time
+            
+            # Update status (briefly)
+            original_text = self.feedback_status_label.cget("text")
+            self.feedback_status_label.config(text=f"Sent: {feedback_data.strip()}")
+            
+            # Reset status after 1 second
+            self.root.after(1000, lambda: self.feedback_status_label.config(text=original_text))
+            
+        except Exception as e:
+            print(f"Feedback error: {e}")
+            self.feedback_status_label.config(text="Feedback: Error", foreground="red")
+    
+    def update_analysis_display(self):
+        """Update the analysis display with current stats"""
+        for gesture in ['open', 'close']:
+            gesture_info = self.gesture_data[gesture]
+            
+            if gesture_info['features']:
+                # Format display string
+                stats_text = f"{gesture.capitalize()} Gesture:\n"
+                stats_text += f"Feature Samples: {len(gesture_info['features'])}\n"
+                stats_text += f"Raw Samples: {len(gesture_info['raw_signals'])}\n"
+                
+                if len(gesture_info['features']) > 0:
+                    # Calculate some basic stats from features
+                    features_array = np.array(gesture_info['features'])
+                    mean_signal = np.mean(features_array[:, 0])  # First feature is mean signal
+                    std_signal = np.mean(features_array[:, 1])   # Second feature is std signal
+                    mean_activity = np.mean(features_array[:, 10])  # Activity feature
+                    
+                    stats_text += f"Avg Signal: {mean_signal:.1f}\n"
+                    stats_text += f"Avg Std: {std_signal:.1f}\n"
+                    stats_text += f"Avg Activity: {mean_activity:.2f}\n"
+                
+                # Update the label
+                if gesture == 'open':
+                    self.open_stats.config(text=stats_text)
+                else:
+                    self.close_stats.config(text=stats_text)
+            else:
+                # No data
+                stats_text = f"{gesture.capitalize()}: No data"
+                if gesture == 'open':
+                    self.open_stats.config(text=stats_text)
+                else:
+                    self.close_stats.config(text=stats_text)
+        """Update the analysis display with current stats"""
+        for gesture in ['open', 'close']:
+            gesture_info = self.gesture_data[gesture]
+            
+            if gesture_info['features']:
+                # Format display string
+                stats_text = f"{gesture.capitalize()} Gesture:\n"
+                stats_text += f"Feature Samples: {len(gesture_info['features'])}\n"
+                stats_text += f"Raw Samples: {len(gesture_info['raw_signals'])}\n"
+                
+                if len(gesture_info['features']) > 0:
+                    # Calculate some basic stats from features
+                    features_array = np.array(gesture_info['features'])
+                    mean_signal = np.mean(features_array[:, 0])  # First feature is mean signal
+                    std_signal = np.mean(features_array[:, 1])   # Second feature is std signal
+                    mean_activity = np.mean(features_array[:, 10])  # Activity feature
+                    
+                    stats_text += f"Avg Signal: {mean_signal:.1f}\n"
+                    stats_text += f"Avg Std: {std_signal:.1f}\n"
+                    stats_text += f"Avg Activity: {mean_activity:.2f}\n"
+                
+                # Update the label
+                if gesture == 'open':
+                    self.open_stats.config(text=stats_text)
+                else:
+                    self.close_stats.config(text=stats_text)
+            else:
+                # No data
+                stats_text = f"{gesture.capitalize()}: No data"
+                if gesture == 'open':
+                    self.open_stats.config(text=stats_text)
+                else:
+                    self.close_stats.config(text=stats_text)
+    
+    def toggle_connection(self):
+        """Connect or disconnect from serial port"""
+        if self.serial_port is None:
+            try:
+                port = self.port_entry.get()
+                self.serial_port = serial.Serial(port, 9600, timeout=1)
+                self.connect_btn.config(text="Disconnect")
+                self.status_bar.config(text=f"Connected to {port} | Neural Network Mode")
+                
+                # Update feedback status if enabled
+                if self.feedback_enabled:
+                    self.feedback_status_label.config(text="Feedback: Enabled", foreground="green")
+                
+                # Start reading thread
+                threading.Thread(target=self.read_serial, daemon=True).start()
+                
+            except Exception as e:
+                messagebox.showerror("Connection Error", str(e))
+        else:
+            # Disconnect
+            try:
+                self.serial_port.close()
+            except:
+                pass
+                
+            self.serial_port = None
+            self.connect_btn.config(text="Connect")
+            self.status_bar.config(text="Not Connected | Neural Network Mode")
+            
+            # Update feedback status
+            if self.feedback_enabled:
+                self.feedback_status_label.config(text="Feedback: Enabled (No Connection)", foreground="orange")
+    
+    def toggle_recording(self):
+        """Start or stop recording gesture data"""
+        if not self.is_recording:
+            # Check if connected
+            if self.serial_port is None:
+                messagebox.showerror("Error", "Please connect to device first")
+                return
+                
+            # Start recording
+            self.is_recording = True
+            self.current_gesture = self.gesture_var.get()
+            self.record_btn.config(text="Stop Recording")
+            self.status_bar.config(text=f"Recording {self.current_gesture} gesture...")
+            
+            # Reset for new recording
+            self.state_history.clear()
+            self.window_activity.clear()
+            
+        else:
+            # Stop recording
+            self.is_recording = False
+            self.record_btn.config(text="Start Recording")
+            
+            if self.serial_port:
+                self.status_bar.config(text=f"Connected to {self.port_entry.get()} | Neural Network Mode")
+            else:
+                self.status_bar.config(text="Not Connected | Neural Network Mode")
+            
+            # Update analysis with new data
+            self.update_analysis_display()
+            
+            self.current_gesture = None
+    
+    def toggle_prediction(self):
+        """Start or stop real-time prediction"""
+        if not self.is_predicting:
+            # Check if neural network is trained
+            if not self.is_nn_trained:
+                messagebox.showerror("Error", "Please train the neural network first")
+                return
+                
+            # Start prediction
+            self.is_predicting = True
+            self.predict_btn.config(text="Stop Prediction")
+            
+            # Update status with feedback info
+            status_text = "Neural Network Prediction Active"
+            if self.feedback_enabled and self.serial_port:
+                status_text += " | Feedback ON"
+            elif self.feedback_enabled:
+                status_text += " | Feedback ON (No Connection)"
+            self.status_bar.config(text=status_text)
+            
+            # Clear prediction history
+            self.prediction_history.clear()
+            
+        else:
+            # Stop prediction
+            self.is_predicting = False
+            self.predict_btn.config(text="Start Prediction")
+            self.prediction_label.config(text="Prediction: -")
+            self.confidence_label.config(text="Confidence: -")
+            
+            if self.serial_port:
+                self.status_bar.config(text=f"Connected to {self.port_entry.get()} | Neural Network Mode")
+            else:
+                self.status_bar.config(text="Not Connected | Neural Network Mode")
+                
+            # Reset feedback tracking
+            self.last_sent_prediction = None
+    
+    def read_serial(self):
+        """Read data from serial port and process it"""
+        last_plot_update = time.time()
+        activity_data = deque(maxlen=100)  # For plotting activity
+        feature_data = deque(maxlen=100)   # For plotting features
+        
+        while self.serial_port is not None:
+            try:
+                if self.serial_port.in_waiting:
+                    data = self.serial_port.readline().decode().strip()
+                    if data:
+                        try:
+                            value = float(data)
+                            
+                            # Performance optimization
+                            self.sample_counter += 1
+                            if self.sample_counter % self.process_every != 0:
+                                continue
+                            
+                            current_time = time.time()
+                            
+                            # Update data buffers
+                            self.data_buffer.append(value)
+                            self.analysis_buffer.append(value)
+                            
+                            # Process if we have enough data
+                            if len(self.analysis_buffer) >= 2:
+                                # Calculate slope
+                                data_for_processing = list(self.analysis_buffer)
+                                slope = self.calculate_slope(data_for_processing)
+                                self.slope_buffer.append(slope)
+                                
+                                # Update displays (throttled)
+                                if self.sample_counter % 5 == 0:
+                                    self.value_label.config(text=f"Signal: {value:.1f}")
+                                    self.slope_label.config(text=f"Slope: {slope:.2f}")
+                                
+                                # Update state based on measurements
+                                self.update_state(value, slope)
+                                
+                                # Add activity data for plotting
+                                activity_data.append(self.activity_ratio)
+                                
+                                # Add feature data for plotting (use first feature as example)
+                                if len(self.feature_buffer) > 0:
+                                    feature_data.append(self.feature_buffer[-1][0])  # Mean signal
+                                
+                                # Make prediction if active
+                                if self.is_predicting and self.sample_counter % 5 == 0:
+                                    prediction, confidence = self.predict_with_neural_network()
+                                    if prediction:
+                                        # Color coding based on prediction
+                                        color = 'red' if prediction == "CLOSE" else 'green'
+                                        
+                                        # Add indicator for low confidence (threshold rule applied)
+                                        if confidence < 0.6:
+                                            prediction_text = f"Prediction: {prediction} (Low Conf)"
+                                            color = 'orange'  # Different color for low confidence
+                                        else:
+                                            prediction_text = f"Prediction: {prediction}"
+                                        
+                                        self.prediction_label.config(
+                                            text=prediction_text,
+                                            foreground=color
+                                        )
+                                        self.confidence_label.config(text=f"Confidence: {confidence:.3f}")
+                                        
+                                        # Send feedback to Arduino
+                                        self.send_feedback_to_arduino(prediction)
+                            
+                            # Update plots at the specified interval
+                            if (current_time - last_plot_update) * 1000 > self.update_interval:
+                                # Update signal plot
+                                self.line1.set_data(range(len(self.data_buffer)), list(self.data_buffer))
+                                self.ax1.relim()
+                                self.ax1.autoscale_view()
+                                
+                                # Update activity plot
+                                if len(activity_data) > 0:
+                                    self.line2.set_data(range(len(activity_data)), list(activity_data))
+                                    self.ax2.relim()
+                                    self.ax2.set_ylim(0, 1.1)  # Fixed y-axis for activity
+                                
+                                # Update feature plot
+                                if len(feature_data) > 0:
+                                    self.line3.set_data(range(len(feature_data)), list(feature_data))
+                                    self.ax3.relim()
+                                    self.ax3.autoscale_view()
+                                
+                                # Draw plots
+                                self.fig.canvas.draw_idle()
+                                last_plot_update = current_time
+                        
+                        except ValueError:
+                            # Skip invalid data
+                            pass
+                            
+            except Exception as e:
+                print(f"Serial error: {str(e)}")
+                if self.serial_port is None:
+                    break
+    
+    def run(self):
+        """Run the application"""
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    app = MuscleStateAnalyzer()
+    app.run()
